@@ -1,0 +1,23 @@
+.tool-bar {
+    box-shadow: 1px 0px 1px 0px #ddd;
+}
+
+.tool-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    width: 40px;
+}
+
+.tool-button.active{
+    background-color: #00000033;
+}
+.tool-button:hover {
+    background-color: #00000022;
+}
+
+.tool-button.active svg{
+    transform: scale(1.1);
+
+}

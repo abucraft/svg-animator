@@ -1,0 +1,19 @@
+button.play-stop-button{
+    width:100%;
+    height: 100%;
+    border-radius: 0;
+    svg {
+        margin:auto;
+        display: block;
+    }
+    /* This animates the circle when it switches to play */
+    .circle {
+        transition: stroke-dashoffset 300ms ease-in;
+        stroke-dashoffset: 0;
+        fill: none;
+    }
+    .circle.play {
+        stroke-dashoffset: 314;
+    }
+}
+
