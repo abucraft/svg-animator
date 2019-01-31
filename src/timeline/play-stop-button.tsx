@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Component, RefObject } from 'react'
 import * as classNames from 'classnames'
 import { Button } from 'antd'
-import "./play-stop-button.scss"
+import "./play-stop-button.less"
 
 export default class PlayStopButton extends Component {
     fromPauseToPlay: RefObject<any>

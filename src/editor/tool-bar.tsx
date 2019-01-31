@@ -1,7 +1,7 @@
 import { Component, ComponentClass, RefObject } from 'react'
 import * as React from 'react'
 import { Selector, ConnectedSelector } from './selector'
-import './tool-bar.scss'
+import './tool-bar.less'
 import { SVGRendered } from '../core/store';
 
 declare global {
