@@ -67,12 +67,12 @@ function mapDispatchToProps(dispatch): TimelineDispatchProps {
     }
 }
 
-function createTweenLiteFrame(target, duration, attr, frameValue: FrameValue) {
+function createTweenLiteFrame(target, duration, attr, frameValue: FrameValue, targetTime: number) {
     let fromObj = {}
     let toObj = {}
     fromObj[attr] = frameValue.from
     toObj[attr] = frameValue.to
-    return TweenLite.fromTo(target, duration, { attr: fromObj }, { attr: toObj }).pause()
+    return TweenLite.fromTo(target, duration, { attr: fromObj }, { attr: toObj }).pause().seek(targetTime)
 }
 
 // All mutations of animation state
@@ -125,7 +125,7 @@ class Timelines extends Component<TimelineProps, TimelineState> {
                         // copy old frame to new svgAnimations
                         singleSvgAnimations = singleSvgAnimations.setIn([attr], prevState.svgAnimations.getIn([id, attr], Map()));
                         if (changed) {
-                            singleSvgAnimations = singleSvgAnimations.setIn([attr, frameKey], { value: animation, tweenLite: createTweenLiteFrame(document.getElementById(initState.attributes.id), curTime - localPrevTime, attr, { from: fromValue, to: toValue }) })
+                            singleSvgAnimations = singleSvgAnimations.setIn([attr, frameKey], { value: animation, tweenLite: createTweenLiteFrame(document.getElementById(initState.attributes.id), curTime - localPrevTime, attr, { from: fromValue, to: toValue }, nextProps.currentTime - frameKey.get(0)) })
                         }
                     }
                 }

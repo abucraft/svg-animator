@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { hot } from 'react-hot-loader'
+import { hot } from 'react-hot-loader/root'
 import { Provider, connect } from 'react-redux'
 import store from '../core/store'
 import AppBody from './app-body'
@@ -12,4 +12,4 @@ const App = () => (
         <AppBody />
     </Provider>)
 
-export default hot(module)(App)
+export default hot(App)

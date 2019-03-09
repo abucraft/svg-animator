@@ -1,7 +1,6 @@
 const path = require('path');
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const webpack = require('webpack');
-const tsImportPluginFactory = require('ts-import-plugin')
 
 const htmlPlugin = new HtmlWebPackPlugin({
     template: "./src/index.html",
@@ -9,11 +8,11 @@ const htmlPlugin = new HtmlWebPackPlugin({
 });
 
 module.exports = {
+    mode: 'development',
     entry: './src/index.tsx',
     devtool: 'source-map',
     devServer: {
-        contentBase: './dist',
-        hot: true
+        contentBase: './dist'
     },
     resolve: {
         // Add '.ts' and '.tsx' as resolvable extensions.
@@ -22,18 +21,29 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.tsx?$/,
-                use: [
-                    {
-                        loader: 'babel-loader',
-                        options: {
-                            plugins: ['react-hot-loader/babel'],
-                        },
+                test: /\.(j|t)sx?$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        cacheDirectory: true,
+                        babelrc: false,
+                        presets: [
+                            [
+                                '@babel/preset-env',
+                                { targets: { browsers: 'last 2 versions' } }, // or whatever your project requires
+                            ],
+                            '@babel/preset-typescript',
+                            '@babel/preset-react',
+                        ],
+                        plugins: [
+                            // plugin-proposal-decorators is only needed if you're using experimental decorators in TypeScript
+                            ['@babel/plugin-proposal-decorators', { legacy: true }],
+                            ['@babel/plugin-proposal-class-properties', { loose: true }],
+                            'react-hot-loader/babel',
+                        ],
                     },
-                    {
-                        loader: 'ts-loader'
-                    }
-                ]
+                },
             },
             {
                 test: /\.(le|c)ss$/,
@@ -46,7 +56,7 @@ module.exports = {
         path: path.resolve(__dirname, 'dist')
     },
     plugins: [
-        htmlPlugin,
-        new webpack.HotModuleReplacementPlugin()
+        new webpack.NamedModulesPlugin(),
+        htmlPlugin
     ]
 };
