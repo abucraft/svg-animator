@@ -48,7 +48,6 @@ declare global {
         innerTime: number
         start: number
         scale: number
-        curProps?: TimelineProps
     }
 };
 function mapStateToProps(state: AppState): TimelineStateProps {
@@ -86,9 +85,9 @@ class Timelines extends Component<TimelineProps, TimelineState> {
             innerTime: this.props.currentTime
         }
     }
-    static buildState(nextProps: TimelineProps, prevState: TimelineState): TimelineState {
+    buildState(props: TimelineProps, componentState: TimelineState): TimelineState {
         let svgAnimations: SvgAnimations = Map()
-        nextProps.svgStates.forEach((svgState, id) => {
+        props.svgStates.forEach((svgState, id) => {
             let keys = svgState.keys()
             let prevTime = parseFloat(keys[0])
             let initState = JSON.parse(JSON.stringify(svgState.get(prevTime)))
@@ -117,15 +116,15 @@ class Timelines extends Component<TimelineProps, TimelineState> {
                         if (fromValue == toValue) continue
                         let frameKey = List([localPrevTime, curTime])
                         let animation, changed
-                        if ((animation = prevState.svgAnimations.getIn([id, attr, frameKey])) !== undefined) {
+                        if ((animation = componentState.svgAnimations.getIn([id, attr, frameKey])) !== undefined) {
                             changed = animation.from !== fromValue || animation.to !== toValue
                         } else {
                             changed = true
                         }
                         // copy old frame to new svgAnimations
-                        singleSvgAnimations = singleSvgAnimations.setIn([attr], prevState.svgAnimations.getIn([id, attr], Map()));
+                        singleSvgAnimations = singleSvgAnimations.setIn([attr], componentState.svgAnimations.getIn([id, attr], Map()));
                         if (changed) {
-                            singleSvgAnimations = singleSvgAnimations.setIn([attr, frameKey], { value: animation, tweenLite: createTweenLiteFrame(document.getElementById(initState.attributes.id), curTime - localPrevTime, attr, { from: fromValue, to: toValue }, nextProps.currentTime - frameKey.get(0)) })
+                            singleSvgAnimations = singleSvgAnimations.setIn([attr, frameKey], { value: animation, tweenLite: createTweenLiteFrame(document.getElementById(initState.attributes.id), curTime - localPrevTime, attr, { from: fromValue, to: toValue }, props.currentTime - frameKey.get(0)) })
                         }
                     }
                 }
@@ -134,10 +133,9 @@ class Timelines extends Component<TimelineProps, TimelineState> {
         })
 
         let nextState = {
-            ...prevState,
+            ...componentState,
             svgAnimations: svgAnimations,
-            innerTime: nextProps.currentTime,
-            curProps: nextProps
+            innerTime: props.currentTime
         }
         return nextState
     }
@@ -156,12 +154,35 @@ class Timelines extends Component<TimelineProps, TimelineState> {
         AnimationSignal.next(time);
     }
 
+    animationHandle = 0
+    playTime = 0
+    handlePlay = (play: boolean) => {
+        if (play && this.animationHandle === 0) {
+            let startTime = performance.now()
+            this.playTime = this.state.innerTime
+            let playAnimation = (time: DOMHighResTimeStamp) => {
+                let diffTime = time - startTime + this.playTime * 1000
+                startTime = time
+                this.playTime = diffTime / 1000
+                this.onTimelineMove(this.playTime)
+                this.setState({ innerTime: this.playTime })
+                this.animationHandle = requestAnimationFrame(playAnimation)
+            }
+            this.animationHandle = requestAnimationFrame(playAnimation)
+        } else if (this.animationHandle) {
+            cancelAnimationFrame(this.animationHandle)
+            this.animationHandle = 0
+            this.props.onTimelineMoveTo(this.playTime)
+        }
+    }
 
-    static getDerivedStateFromProps(nextProps: TimelineProps, prevState: TimelineState): TimelineState {
-        if (prevState.curProps && prevState.curProps.svgStates === nextProps.svgStates) {
-            return { ...prevState, curProps: nextProps, innerTime: nextProps.currentTime }
-        } else {
-            return Timelines.buildState(nextProps, prevState)
+    componentDidUpdate(prevProps: TimelineProps) {
+        if (prevProps !== this.props) {
+            if (prevProps.svgStates !== this.props.svgStates) {
+                this.setState(this.buildState(this.props, this.state))
+            } else {
+                this.setState({ innerTime: this.props.currentTime })
+            }
         }
     }
 
@@ -179,6 +200,7 @@ class Timelines extends Component<TimelineProps, TimelineState> {
                 start={this.state.start}
                 scale={this.state.scale}
                 svgAnimations={this.state.svgAnimations}
+                onPlay={this.handlePlay}
             />
         )
     }

@@ -4,11 +4,9 @@ import * as classNames from 'classnames'
 import { Button } from 'antd'
 import "./play-stop-button.less"
 
-export default class PlayStopButton extends Component {
+export default class PlayStopButton extends Component<{ onPlay: (play: boolean) => void }, { play: boolean }> {
     fromPauseToPlay: RefObject<any>
     fromPlayToPause: RefObject<any>
-    state: any
-    props: any
     constructor(props) {
         super(props)
         this.state = {
@@ -17,16 +15,20 @@ export default class PlayStopButton extends Component {
         this.fromPauseToPlay = React.createRef();
         this.fromPlayToPause = React.createRef();
     }
+
+    componentDidMount() {
+        this.fromPauseToPlay.current.beginElement()
+    }
+
     onClick = () => {
-        if (this.state.play) {
+        if (!this.state.play) {
             this.fromPlayToPause.current.beginElement()
         } else {
             this.fromPauseToPlay.current.beginElement()
         }
         this.setState({
             play: !this.state.play
-        })
-        this.props.onPlay(!this.state.play)
+        }, () => { this.props.onPlay(this.state.play) })
     }
     render() {
         return (
