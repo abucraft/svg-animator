@@ -2,6 +2,7 @@
     "compilerOptions": {
         "target": "es6",
         "outDir": "./dist/",
+        "skipLibCheck": true,
         "module": "esnext",
         "moduleResolution":"node",
         "sourceMap": true,

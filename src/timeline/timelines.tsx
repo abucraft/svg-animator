@@ -85,7 +85,7 @@ class Timelines extends Component<TimelineProps, TimelineState> {
             innerTime: this.props.currentTime
         }
     }
-    buildState(props: TimelineProps, componentState: TimelineState): TimelineState {
+    static buildState(props: TimelineProps, componentState: TimelineState): TimelineState {
         let svgAnimations: SvgAnimations = Map()
         props.svgStates.forEach((svgState, id) => {
             let keys = svgState.keys()
@@ -179,7 +179,7 @@ class Timelines extends Component<TimelineProps, TimelineState> {
     componentDidUpdate(prevProps: TimelineProps) {
         if (prevProps !== this.props) {
             if (prevProps.svgStates !== this.props.svgStates) {
-                this.setState(this.buildState(this.props, this.state))
+                this.setState(Timelines.buildState(this.props, this.state))
             } else {
                 this.setState({ innerTime: this.props.currentTime })
             }
