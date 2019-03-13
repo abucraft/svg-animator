@@ -2,7 +2,7 @@ import { Component } from 'react'
 import * as React from 'react'
 import { connect } from 'react-redux'
 
-import { TweenLite } from 'gsap/TweenMax'
+import { TweenLite } from 'gsap/umd/TweenMax'
 import { Map, List } from 'immutable'
 
 import { Object } from 'core-js';
@@ -75,7 +75,7 @@ function createTweenLiteFrame(target, duration, attr, frameValue: FrameValue, ta
 }
 
 // All mutations of animation state
-class Timelines extends Component<TimelineProps, TimelineState> {
+export class Timelines extends Component<TimelineProps, TimelineState> {
     constructor(props) {
         super(props)
         this.state = {
@@ -85,9 +85,10 @@ class Timelines extends Component<TimelineProps, TimelineState> {
             innerTime: this.props.currentTime
         }
     }
-    static buildState(props: TimelineProps, componentState: TimelineState): TimelineState {
-        let svgAnimations: SvgAnimations = Map()
-        props.svgStates.forEach((svgState, id) => {
+
+    static buildAnimationsFromState(svgStates: Map<string, SortedMap<any>>, existsAnimations: SvgAnimations, currentTime: number): SvgAnimations {
+        let svgAnimations: SvgAnimations = existsAnimations
+        svgStates.forEach((svgState, id) => {
             let keys = svgState.keys()
             let prevTime = parseFloat(keys[0])
             let initState = JSON.parse(JSON.stringify(svgState.get(prevTime)))
@@ -116,22 +117,26 @@ class Timelines extends Component<TimelineProps, TimelineState> {
                         if (fromValue == toValue) continue
                         let frameKey = List([localPrevTime, curTime])
                         let animation, changed
-                        if ((animation = componentState.svgAnimations.getIn([id, attr, frameKey])) !== undefined) {
+                        if ((animation = svgAnimations.getIn([id, attr, frameKey])) !== undefined) {
                             changed = animation.from !== fromValue || animation.to !== toValue
                         } else {
                             changed = true
                         }
                         // copy old frame to new svgAnimations
-                        singleSvgAnimations = singleSvgAnimations.setIn([attr], componentState.svgAnimations.getIn([id, attr], Map()));
+                        singleSvgAnimations = singleSvgAnimations.setIn([attr], svgAnimations.getIn([id, attr], Map()));
                         if (changed) {
-                            singleSvgAnimations = singleSvgAnimations.setIn([attr, frameKey], { value: animation, tweenLite: createTweenLiteFrame(document.getElementById(initState.attributes.id), curTime - localPrevTime, attr, { from: fromValue, to: toValue }, props.currentTime - frameKey.get(0)) })
+                            singleSvgAnimations = singleSvgAnimations.setIn([attr, frameKey], { value: animation, tweenLite: createTweenLiteFrame(document.getElementById(initState.attributes.id), curTime - localPrevTime, attr, { from: fromValue, to: toValue }, currentTime - frameKey.get(0)) })
                         }
                     }
                 }
             }
             svgAnimations = svgAnimations.set(id, singleSvgAnimations);
         })
+        return svgAnimations
+    }
 
+    static buildState(props: TimelineProps, componentState: TimelineState): TimelineState {
+        let svgAnimations = Timelines.buildAnimationsFromState(props.svgStates, componentState.svgAnimations, props.currentTime)
         let nextState = {
             ...componentState,
             svgAnimations: svgAnimations,

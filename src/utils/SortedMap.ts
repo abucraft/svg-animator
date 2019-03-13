@@ -16,20 +16,17 @@ export class SortedMap<V>{
         return Object.keys(this.map).sort()
     }
     [Symbol.iterator]() {
-        function getIteratorFun() {
-            let keys = Object.keys(this.map).sort()
-            let index = 0
-            return {
-                next: () => {
-                    if (index < keys.length) {
-                        let key = keys[index++]
-                        return { value: [key, this.map[key]], done: false }
-                    } else {
-                        return { done: true }
-                    }
+        let keys = Object.keys(this.map).sort()
+        let index = 0
+        return {
+            next: () => {
+                if (index < keys.length) {
+                    let key = keys[index++]
+                    return { value: [key, this.map[key]], done: false }
+                } else {
+                    return { done: true }
                 }
             }
         }
-        return
     }
 }
