@@ -1,9 +1,9 @@
 import { RefObject } from 'react'
 import { Subject, BehaviorSubject } from 'rxjs'
 import { createStore, combineReducers, applyMiddleware } from 'redux'
-import { EDIT_SVG_TEXT, MOVE_TIMELINE, ADD_ALERT, CLEAR_ALERT, addAlert, SELECT_SVG_ELEMENT, DESELECT_SVG_ELEMENT_ALL, MOVE_SVG_ELEMENT } from './actions'
-import { svgToJson, initialSvg, nodeToJson, copySvgFields, compareSvgFields, svgJsonToText } from './svgjson'
-import { SortedMap } from '../utils/sorted-map'
+import { EDIT_SVG_TEXT, MOVE_TIMELINE, ADD_ALERT, CLEAR_ALERT, addAlert, SELECT_SVG_ELEMENT, DESELECT_SVG_ELEMENT_ALL, MOVE_SVG_ELEMENT } from './Actions'
+import { svgToJson, initialSvg, nodeToJson, copySvgFields, compareSvgFields, svgJsonToText } from './SVGJson'
+import { SortedMap } from '../utils/SortedMap'
 import { Map } from 'immutable'
 import { onErrorResumeNext } from 'rxjs';
 declare global {

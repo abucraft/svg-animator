@@ -2,10 +2,10 @@ import { Component, RefObject } from 'react'
 import * as React from 'react'
 import { compose } from 'redux'
 import { connect } from 'react-redux'
-import { SizedComponent } from '../utils/sized-component'
-import { SortedMap } from '../utils/sorted-map'
+import { SizedComponent } from '../utils/SizedComponent'
+import { SortedMap } from '../utils/SortedMap'
 import { Map } from 'immutable'
-import { SVGRendered } from '../core/store'
+import { SVGRendered } from '../core/Store'
 
 declare global {
     type SvgCanvasStateProps = {

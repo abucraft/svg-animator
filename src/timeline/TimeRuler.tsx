@@ -1,6 +1,6 @@
 import { Component } from 'react'
 import * as React from 'react'
-import TimeCursor from './time-cursor'
+import TimeCursor from './TimeCursor'
 
 declare global {
     interface TimeRulerProps {

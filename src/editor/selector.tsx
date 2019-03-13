@@ -5,8 +5,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMousePointer } from '@fortawesome/free-solid-svg-icons'
 import { Tooltip } from 'antd'
 import * as classNames from 'classnames'
-import Editors from './editors'
-import { selectSvgElement, deselectSvgElementAll } from '../core/actions';
+import Editors from './Editors'
+import { selectSvgElement, deselectSvgElementAll } from '../core/Actions';
 
 declare global {
     interface ToolBaseProps {

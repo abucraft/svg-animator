@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Component } from 'react'
 import { Tooltip } from 'antd'
-import "./frame-holder.less"
+import "./FrameHolder.less"
 
 declare global {
     interface FrameHolderProps {

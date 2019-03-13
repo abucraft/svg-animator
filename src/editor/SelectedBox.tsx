@@ -2,7 +2,7 @@ import { Component, RefObject } from 'react'
 import * as React from 'react'
 import { Map } from 'immutable'
 import { stringify } from 'querystring';
-import { AnimationSignal } from '../core/store'
+import { AnimationSignal } from '../core/Store'
 import { Subscription } from 'rxjs';
 
 declare global {

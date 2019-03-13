@@ -1,8 +1,8 @@
 import { Component, ComponentClass, RefObject } from 'react'
 import * as React from 'react'
-import { Selector, ConnectedSelector } from './selector'
-import './tool-bar.less'
-import { SVGRendered } from '../core/store';
+import { Selector, ConnectedSelector } from './Selector'
+import './ToolBar.less'
+import { SVGRendered } from '../core/Store';
 
 declare global {
     interface ToolBarState {

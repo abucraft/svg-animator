@@ -1,10 +1,11 @@
+
 import { Component, RefObject } from 'react'
 import * as React from 'react'
 import { Map } from 'immutable'
-import PlayStopButton from './play-stop-button'
-import FrameHolder from './frame-holder'
-import TimeRuler from './time-ruler'
-import TimeCursor from './time-cursor'
+import PlayStopButton from './PlayStopButton'
+import FrameHolder from './FrameHolder'
+import TimeRuler from './TimeRuler'
+import TimeCursor from './TimeCursor'
 declare global {
     interface FrameContainerProps {
         totalTime: number

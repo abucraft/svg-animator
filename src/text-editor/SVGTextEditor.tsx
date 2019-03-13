@@ -6,8 +6,8 @@ import AceEditor from 'react-ace'
 import * as brace from 'brace'
 import 'brace/mode/svg'
 import 'brace/theme/github'
-import { editSvgText } from '../core/actions'
-import { SizedComponent } from '../utils/sized-component'
+import { editSvgText } from '../core/Actions'
+import { SizedComponent } from '../utils/SizedComponent'
 
 function mapStateToProps(state: AppState, ownProps) {
     return {

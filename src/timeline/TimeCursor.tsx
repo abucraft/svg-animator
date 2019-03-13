@@ -1,6 +1,6 @@
 import { Component, RefObject } from 'react'
 import * as React from 'react'
-import './time-cursor.less'
+import './TimeCursor.less'
 
 declare global {
     interface TimeCursorState {

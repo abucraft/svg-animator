@@ -3,12 +3,12 @@ import * as React from 'react'
 import { connect } from 'react-redux'
 import { Alert } from 'antd'
 import SplitPane from 'react-split-pane'
-import { clearAlert } from '../core/actions'
-import SvgTextEditor from "../text-editor/svg-text-editor"
-import SvgCanvas from '../canvas/svg-canvas'
-import Timelines from '../timeline/timelines'
-import ToolBar from '../editor/tool-bar'
-import { dispatchWindowResize } from '../utils/utils'
+import { clearAlert } from '../core/Actions'
+import SvgTextEditor from "../text-editor/SVGTextEditor"
+import SvgCanvas from '../canvas/SVGCanvas'
+import Timelines from '../timeline/Timelines'
+import ToolBar from '../editor/ToolBar'
+import { dispatchWindowResize } from '../utils/Utils'
 
 declare global {
     interface AppBodyProps extends AppState {

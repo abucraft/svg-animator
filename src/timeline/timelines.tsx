@@ -8,11 +8,11 @@ import { Map, List } from 'immutable'
 import { Object } from 'core-js';
 import { compose } from 'redux';
 
-import FrameContainer from './frame-container'
-import { moveTimeline } from '../core/actions'
-import { SortedMap } from '../utils/sorted-map'
-import { SizedComponent } from '../utils/sized-component'
-import { AnimationSignal } from '../core/store'
+import FrameContainer from './FrameContainer'
+import { moveTimeline } from '../core/Actions'
+import { SortedMap } from '../utils/SortedMap'
+import { SizedComponent } from '../utils/SizedComponent'
+import { AnimationSignal } from '../core/Store'
 
 declare global {
 

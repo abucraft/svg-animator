@@ -2,11 +2,11 @@ import { Component, RefObject } from 'react'
 import * as React from 'react'
 import { compose } from 'redux'
 import { connect, Dispatch } from 'react-redux'
-import { SortedMap } from '../utils/sorted-map'
+import { SortedMap } from '../utils/SortedMap'
 import { Map } from 'immutable'
-import { SVGRendered } from '../core/store'
-import { moveSvgElement } from '../core/actions'
-import SelectedBox from './selected-box'
+import { SVGRendered } from '../core/Store'
+import { moveSvgElement } from '../core/Actions'
+import SelectedBox from './SelectedBox'
 
 declare global {
     interface EditorsProps {
