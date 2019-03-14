@@ -1,13 +1,13 @@
 {
     "compilerOptions": {
-        "target": "es6",
+        "target": "es2017",
         "outDir": "./dist/",
         "skipLibCheck": true,
         "module": "esnext",
         "moduleResolution":"node",
         "sourceMap": true,
         "allowJs": true,
-        "jsx": "preserve",
+        "jsx": "react",
         "isolatedModules": true,
         "lib": [
             "dom",
