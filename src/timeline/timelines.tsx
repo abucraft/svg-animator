@@ -67,10 +67,8 @@ function mapDispatchToProps(dispatch): TimelineDispatchProps {
 }
 
 function createTweenLiteFrame(target, duration, attr, frameValue: FrameValue, targetTime: number) {
-    let fromObj = {}
-    let toObj = {}
-    fromObj[attr] = frameValue.from
-    toObj[attr] = frameValue.to
+    let fromObj = { [attr]: frameValue.from }
+    let toObj = { [attr]: frameValue.to }
     return TweenLite.fromTo(target, duration, { attr: fromObj }, { attr: toObj }).pause().seek(targetTime)
 }
 
@@ -121,6 +119,7 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                             changed = animation.from !== fromValue || animation.to !== toValue
                         } else {
                             changed = true
+                            animation = { from: fromValue, to: toValue }
                         }
                         // copy old frame to new svgAnimations
                         singleSvgAnimations = singleSvgAnimations.setIn([attr], svgAnimations.getIn([id, attr], Map()));

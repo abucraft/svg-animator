@@ -1,5 +1,5 @@
 import { Timelines } from '../Timelines'
-import { Map } from 'immutable'
+import { Map, List } from 'immutable'
 import { SortedMap } from '../../utils/SortedMap';
 
 let testSvgState = Map<string, SortedMap<any>>([['element1', new SortedMap({
@@ -25,8 +25,8 @@ let testSvgState = Map<string, SortedMap<any>>([['element1', new SortedMap({
 })]])
 let expectedSvgAnimations = Map({
     'element1': Map({
-        "cx": Map<FrameKey, SvgAnimationFrame>([[[0, 1], { value: { from: '100', to: '220' } }]]),
-        "cy": Map<FrameKey, SvgAnimationFrame>([[[0, 1], { value: { from: '50', to: '367' } }]])
+        "cx": Map<FrameKey, SvgAnimationFrame>([[List([0, 1]), { value: { from: '100', to: '220' } }]]),
+        "cy": Map<FrameKey, SvgAnimationFrame>([[List([0, 1]), { value: { from: '50', to: '367' } }]])
     })
 })
 
@@ -65,14 +65,11 @@ function svgAnimationEquals(source: SvgAnimations, target: SvgAnimations): boole
             }
             svv.forEach((svvv, svvk) => {
                 if (!equal) return
-                // console.log(svvk)
                 var tvvv = tvv.get(svvk)
-                // console.log(tvvv)
                 if (tvvv == undefined) {
                     equal = false
                     return
                 }
-                console.log(svvv)
                 equal = svvv.value.from === tvvv.value.from && svvv.value.to === tvvv.value.to
             })
         })
