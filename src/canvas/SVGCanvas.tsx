@@ -65,7 +65,7 @@ class SvgCanvas extends Component<SvgCanvasProps> {
         if (oldProps.svgStates != nextProps.svgStates) {
             this.updateSvgElements(oldProps.svgStates, nextProps.svgStates);
         }
-        return true;
+        return oldProps.width !== nextProps.width || oldProps.height !== nextProps.height;
     }
 
     render() {

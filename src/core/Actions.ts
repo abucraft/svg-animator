@@ -1,5 +1,3 @@
-import { Map } from 'immutable'
-
 declare global {
     interface Action {
         type: string
@@ -14,14 +12,12 @@ declare global {
         value: string
     }
 
-    interface MoveSvgElementAction extends Action {
+    interface UpdateSvgAttributeAction extends Action {
         // id --> attributes
-        value: Map<string, SvgNode>
+        value: { [key: string]: any }
     }
 
     type SelectSvgElementAction = EditSvgAction
-    type Pos = { x: number, y: number }
-    type DeltaPos = { dx: number, dy: number }
 }
 
 export const ADD_ALERT = "ADD_ALERT"
@@ -58,11 +54,11 @@ export function deselectSvgElementAll(): Action {
     }
 }
 
-export const MOVE_SVG_ELEMENT = "MOVE_SVG_ELEMENT"
+export const UPDATE_SVG_ATTRIBUTE = "MOVE_SVG_ELEMENT"
 
-export function moveSvgElement(attributesMap: Map<string, any>): MoveSvgElementAction {
+export function updateSvgAttribute(attributesMap: { [key: string]: any }): UpdateSvgAttributeAction {
     return {
-        type: MOVE_SVG_ELEMENT,
+        type: UPDATE_SVG_ATTRIBUTE,
         value: attributesMap
     }
 }

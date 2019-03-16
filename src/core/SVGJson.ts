@@ -1,6 +1,7 @@
-let parser = new DOMParser();
+import { domPaser } from "../utils/Utils";
+
 const xmlParserStr = "application/xml"
-export const initialSvg = `<circle cx="100" cy="50" r="40" stroke="black" stroke-width="2" fill="red"/>`;
+export const initialSvg = `<ellipse cx="100" cy="50" rx="40" ry="40" stroke="black" stroke-width="2" fill="red"/>`;
 declare global {
     interface SvgNode {
         nodeName?: string
@@ -27,7 +28,7 @@ export function nodeToJson(node: Element): SvgNode {
 }
 
 export function svgToJson(svg): SvgNode {
-    let node: Element = <Element>parser.parseFromString(svg, xmlParserStr).firstChild
+    let node: Element = <Element>domPaser.parseFromString(svg, xmlParserStr).firstChild
     if (node.getElementsByTagName('parsererror').length) {
         throw new Error(node.querySelector('parsererror > div').innerHTML)
     }

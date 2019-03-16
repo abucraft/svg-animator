@@ -1,44 +1,21 @@
-import { Component, RefObject } from 'react'
+import { Component } from 'react'
 import * as React from 'react'
-import { compose } from 'redux'
-import { connect, Dispatch } from 'react-redux'
-import { SortedMap } from '../utils/SortedMap'
-import { Map } from 'immutable'
-import { SVGRendered } from '../core/Store'
-import { moveSvgElement } from '../core/Actions'
-import SelectedBox from './SelectedBox'
+import { connect } from 'react-redux'
+import SelectedBox from './tools/SelectedBox'
 
-declare global {
-    interface EditorsProps {
-        svgRoot: SVGSVGElement
-    }
-
-    interface EditorsPropsFromState {
-        editMode: SvgEditMode
-        svgStates: Map<string, SortedMap<SvgNode>>
-        selectedElementIds: Array<string>
-    }
-
-    interface EditorsDispatchesFromState {
-        onMoveSvgElement: (attributesMap: Map<string, SvgNode>) => void
-    }
-
-    type EditorsFullProps = EditorsProps & EditorsPropsFromState & EditorsDispatchesFromState
+type EditorsProps = {
+    svgRoot: SVGSVGElement
 }
+
+type EditorsPropsFromState = {
+    editMode: SvgEditMode
+}
+
+type EditorsFullProps = EditorsProps & EditorsPropsFromState
 
 function mapStateToProps(state: AppState, props: EditorsProps): EditorsPropsFromState {
     return {
-        editMode: state.svg.editMode,
-        svgStates: state.svg.svgStates,
-        selectedElementIds: state.svg.selectedElementIds
-    }
-}
-
-function mapDispatchToProps(dispatch): EditorsDispatchesFromState {
-    return {
-        onMoveSvgElement: (attributesMap: Map<string, SvgNode>) => {
-            dispatch(moveSvgElement(attributesMap));
-        }
+        editMode: state.svg.editMode
     }
 }
 
@@ -51,10 +28,10 @@ class Editors extends Component<EditorsFullProps> {
         switch (this.props.editMode) {
             case 'select':
             default:
-                return (<SelectedBox svgRoot={this.props.svgRoot} selectedElementIds={this.props.selectedElementIds} onMoveSvgElement={this.props.onMoveSvgElement} />)
+                return (<SelectedBox svgRoot={this.props.svgRoot} />)
         }
     }
 
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Editors)
+export default connect(mapStateToProps)(Editors)

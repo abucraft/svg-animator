@@ -1,7 +1,7 @@
 import { RefObject } from 'react'
 import { Subject, BehaviorSubject } from 'rxjs'
-import { createStore, combineReducers, applyMiddleware } from 'redux'
-import { EDIT_SVG_TEXT, MOVE_TIMELINE, ADD_ALERT, CLEAR_ALERT, addAlert, SELECT_SVG_ELEMENT, DESELECT_SVG_ELEMENT_ALL, MOVE_SVG_ELEMENT } from './Actions'
+import { createStore, combineReducers, applyMiddleware, Store } from 'redux'
+import { EDIT_SVG_TEXT, MOVE_TIMELINE, ADD_ALERT, CLEAR_ALERT, addAlert, SELECT_SVG_ELEMENT, DESELECT_SVG_ELEMENT_ALL, UPDATE_SVG_ATTRIBUTE } from './Actions'
 import { svgToJson, initialSvg, nodeToJson, copySvgFields, compareSvgFields, svgJsonToText } from './SVGJson'
 import { SortedMap } from '../utils/SortedMap'
 import { Map } from 'immutable'
@@ -57,11 +57,11 @@ function deselectSvgElementAll(state: SvgState, action: Action): SvgState {
     return { ...state, selectedElementIds: [], currentSvgText: "" };
 }
 
-function moveSvgElement(state: SvgState, action: MoveSvgElementAction): SvgState {
+function updateSvgAttribute(state: SvgState, action: UpdateSvgAttributeAction): SvgState {
     let attributesMap = action.value;
     let currentTime = state.currentTime;
     let svgStates = state.svgStates;
-    attributesMap.forEach((v, id) => {
+    Map(attributesMap).forEach((v, id) => {
         let svgState = svgStates.get(id);
         let nowState: SvgNode = svgState.get(currentTime) || { attributes: {} };
         nowState.attributes = { ...nowState.attributes, ...v.attributes };
@@ -121,12 +121,16 @@ export const AnimationSignal = new Subject<number>()
 
 import { composeWithDevTools } from 'redux-devtools-extension'
 
-export default createStore(combineReducers({
+const store: Store = createStore(combineReducers({
     alert: alertReducer, svg: combineActionReducers(Map([
         [EDIT_SVG_TEXT, editSvgText],
         [MOVE_TIMELINE, moveTimeline],
         [SELECT_SVG_ELEMENT, selectSvgElement],
         [DESELECT_SVG_ELEMENT_ALL, deselectSvgElementAll],
-        [MOVE_SVG_ELEMENT, moveSvgElement]
+        [UPDATE_SVG_ATTRIBUTE, updateSvgAttribute]
     ]), initialState)
 }), composeWithDevTools(applyMiddleware(errorAlerter)));
+
+export default store
+
+export const dispatch = store.dispatch

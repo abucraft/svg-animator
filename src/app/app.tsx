@@ -5,7 +5,6 @@ import store from '../core/Store'
 import AppBody from './AppBody'
 import './App.less'
 import './ReactSplitPane.less'
-import 'antd/dist/antd.css'
 
 const App = () => (
     <Provider store={store}>
