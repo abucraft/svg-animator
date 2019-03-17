@@ -85,11 +85,12 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
     }
 
     static buildAnimationsFromState(svgStates: Map<string, SortedMap<any>>, existsAnimations: SvgAnimations, currentTime: number): SvgAnimations {
-        let svgAnimations: SvgAnimations = existsAnimations
+        // Recreate the animation frames every time, don't consider the time cost(it's very small currently)
+        let svgAnimations: SvgAnimations = Map()
         svgStates.forEach((svgState, id) => {
             let keys = svgState.keys()
             let prevTime = parseFloat(keys[0])
-            let initState = JSON.parse(JSON.stringify(svgState.get(prevTime)))
+            let initState = svgState.get(prevTime)
             let stateStack: { [key: string]: { time: number, value: any } } = {}
             let singleSvgAnimations = Map<string, Map<FrameKey, SvgAnimationFrame>>()
             for (let i = 1; i < keys.length; i++) {
@@ -121,8 +122,9 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                             changed = true
                             animation = { from: fromValue, to: toValue }
                         }
-                        // copy old frame to new svgAnimations
-                        singleSvgAnimations = singleSvgAnimations.setIn([attr], svgAnimations.getIn([id, attr], Map()));
+                        // If attr's animations map is not initialized, initialize it
+                        if (singleSvgAnimations.get(attr) === undefined)
+                            singleSvgAnimations = singleSvgAnimations.set(attr, Map());
                         if (changed) {
                             singleSvgAnimations = singleSvgAnimations.setIn([attr, frameKey], { value: animation, tweenLite: createTweenLiteFrame(document.getElementById(initState.attributes.id), curTime - localPrevTime, attr, { from: fromValue, to: toValue }, currentTime - frameKey.get(0)) })
                         }
