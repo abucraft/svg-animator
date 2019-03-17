@@ -125,7 +125,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
         this.box.addEventListener('mousedown', this.onMouseDown)
         this.box.addEventListener('click', this.onClick)
         this.animationSubscription = AnimationSignal.subscribe(this.updateAll)
-        this.transform = new Transform(this.props.svgRoot, bbox, this.state.selectedElements, this.updateBox)
+        this.transform = new Transform(this.props.svgRoot, bbox, this.state.selectedElements, this.updateAll)
     }
 
     updateBox = () => {
