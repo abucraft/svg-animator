@@ -3,9 +3,15 @@ import { domPaser } from "../utils/Utils";
 const xmlParserStr = "application/xml"
 export const initialSvg = `<ellipse cx="100" cy="50" rx="40" ry="40" stroke="black" stroke-width="2" fill="red"/>`;
 declare global {
+    interface Transform {
+        translate?: Point2D
+        rotateDegree?: number
+        scale?: Point2D
+    }
     interface SvgNode {
         nodeName?: string
-        attributes: { [key: string]: any }
+        attributes: { [key: string]: any },
+        transform: Transform
         children?: [SvgNode]
     }
 }
@@ -61,7 +67,7 @@ export function copySvgFields(source: SvgNode, dest: SvgNode): void {
 }
 
 export function compareSvgFields(base: SvgNode, target: SvgNode): SvgNode {
-    let diff = { attributes: {} }
+    let diff = { attributes: {}, transform: {} }
     if (base.nodeName !== target.nodeName) {
         diff["nodeName"] = target.nodeName
     }

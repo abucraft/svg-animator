@@ -9,6 +9,7 @@
         "allowJs": true,
         "jsx": "react",
         "isolatedModules": true,
+        "allowSyntheticDefaultImports": true,
         "lib": [
             "dom",
             "es2017"

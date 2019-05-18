@@ -1,5 +1,5 @@
-import { Component, RefObject } from 'react'
-import * as React from 'react'
+import { Component } from 'react'
+import React from 'react'
 import { connect } from 'react-redux'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMousePointer } from '@fortawesome/free-solid-svg-icons/faMousePointer'
@@ -42,7 +42,7 @@ export class Selector extends Component<SelectorProps> {
         this.props.onSelect(Selector)
     }
 
-    onSvgClick = (event: Event) => {
+    onSvgClick = (event: MouseEvent) => {
         console.log(event.srcElement);
         let id = event.srcElement.id;
         if (id.length > 0) {

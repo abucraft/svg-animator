@@ -1,19 +1,22 @@
-import { DragPoint } from "./DragPoint";
+import { RectDragPoint } from "./DragPoint";
 import { dispatch } from "../../core/Store";
 import { updateSvgAttribute, selectSvgElement } from "../../core/Actions";
 import { getAttributes, setAttributes } from "../../utils/Utils";
+import { RotatePoint } from "./RotatePoint";
 
 
-export class Transform {
-    nwpoint: DragPoint
-    nepoint: DragPoint
-    swpoint: DragPoint
-    sepoint: DragPoint
-    bbox: Rect2D
+export class TransformControl {
+    nwpoint: RectDragPoint
+    nepoint: RectDragPoint
+    swpoint: RectDragPoint
+    sepoint: RectDragPoint
+    nwRotatePoint: RotatePoint
+    bboxRaw: Rect2D
     selectSvgElements: SVGElement[]
-    constructor(svgRoot: SVGSVGElement, bbox: Rect2D, selectedElements: SVGElement[], onResize: () => void) {
+    constructor(svgRoot: SVGSVGElement, bboxRaw: Rect2D, selectedElements: SVGElement[], onResize: () => void) {
         this.selectSvgElements = selectedElements
-        this.nwpoint = new DragPoint(svgRoot, { x: bbox.x, y: bbox.y }, (p) => {
+        this.bboxRaw = bboxRaw
+        this.nwpoint = new RectDragPoint(svgRoot, { x: bboxRaw.x, y: bboxRaw.y }, (p) => {
             selectedElements.forEach(elm => {
                 if (elm.nodeName === 'ellipse') {
                     let { cx, cy, rx, ry } = getAttributes(elm, { cx: 'number', cy: 'number', rx: 'number', ry: 'number' })
@@ -26,7 +29,7 @@ export class Transform {
             })
             onResize()
         }, this.onTransformEnd, 'nw-resize')
-        this.nepoint = new DragPoint(svgRoot, { x: bbox.x + bbox.width, y: bbox.y }, (p) => {
+        this.nepoint = new RectDragPoint(svgRoot, { x: bboxRaw.x + bboxRaw.width, y: bboxRaw.y }, (p) => {
             selectedElements.forEach(elm => {
                 if (elm.nodeName === 'ellipse') {
                     let { cx, cy, rx, ry } = getAttributes(elm, { cx: 'number', cy: 'number', rx: 'number', ry: 'number' })
@@ -39,7 +42,7 @@ export class Transform {
             })
             onResize()
         }, this.onTransformEnd, 'ne-resize')
-        this.swpoint = new DragPoint(svgRoot, { x: bbox.x, y: bbox.y + bbox.height }, p => {
+        this.swpoint = new RectDragPoint(svgRoot, { x: bboxRaw.x, y: bboxRaw.y + bboxRaw.height }, p => {
             selectedElements.forEach(elm => {
                 if (elm.nodeName === 'ellipse') {
                     let { cx, cy, rx, ry } = getAttributes(elm, { cx: 'number', cy: 'number', rx: 'number', ry: 'number' })
@@ -52,7 +55,7 @@ export class Transform {
             })
             onResize()
         }, this.onTransformEnd, 'sw-resize')
-        this.sepoint = new DragPoint(svgRoot, { x: bbox.x + bbox.width, y: bbox.y + bbox.height }, p => {
+        this.sepoint = new RectDragPoint(svgRoot, { x: bboxRaw.x + bboxRaw.width, y: bboxRaw.y + bboxRaw.height }, p => {
             selectedElements.forEach(elm => {
                 if (elm.nodeName === 'ellipse') {
                     let { cx, cy, rx, ry } = getAttributes(elm, { cx: 'number', cy: 'number', rx: 'number', ry: 'number' })
@@ -65,6 +68,7 @@ export class Transform {
             })
             onResize()
         }, this.onTransformEnd, 'se-resize')
+        this.nwRotatePoint = new RotatePoint(svgRoot, { x: bboxRaw.x, y: bboxRaw.y }, this.getCenter(), 0, () => { }, () => { }, 'nw')
     }
 
     onTransformEnd = () => {
@@ -78,12 +82,18 @@ export class Transform {
         dispatch(updateSvgAttribute(attributesMap))
     }
 
-    setBBox(bbox: Rect2D) {
-        this.bbox = bbox
-        this.nwpoint.setPosition({ x: bbox.x, y: bbox.y })
-        this.nepoint.setPosition({ x: bbox.x + bbox.width, y: bbox.y })
-        this.swpoint.setPosition({ x: bbox.x, y: bbox.y + bbox.height })
-        this.sepoint.setPosition({ x: bbox.x + bbox.width, y: bbox.y + bbox.height })
+    getCenter(): Point2D {
+        return { x: this.bboxRaw.x + this.bboxRaw.width / 2, y: this.bboxRaw.y + this.bboxRaw.height / 2 }
+    }
+
+    setBBox(bboxRaw: Rect2D) {
+        this.bboxRaw = bboxRaw
+        let center = this.getCenter()
+        this.nwpoint.setPosition({ x: bboxRaw.x, y: bboxRaw.y })
+        this.nepoint.setPosition({ x: bboxRaw.x + bboxRaw.width, y: bboxRaw.y })
+        this.swpoint.setPosition({ x: bboxRaw.x, y: bboxRaw.y + bboxRaw.height })
+        this.sepoint.setPosition({ x: bboxRaw.x + bboxRaw.width, y: bboxRaw.y + bboxRaw.height })
+        this.nwRotatePoint.setPosition({ x: bboxRaw.x, y: bboxRaw.y }, this.getCenter(), 0)
     }
 
     hide() {

@@ -12,12 +12,12 @@ import FrameContainer from './FrameContainer'
 import { moveTimeline } from '../core/Actions'
 import { SortedMap } from '../utils/SortedMap'
 import { SizedComponent } from '../utils/SizedComponent'
-import { AnimationSignal } from '../core/Store'
+import { SvgEditorContext } from '../app/SvgEditorContext';
 
 declare global {
 
     type TimelineStateProps = {
-        svgStates: Map<string, SortedMap<any>>
+        svgStates: Map<string, SortedMap<SvgNode>>
         currentTime: number
         totalTime: number
     }
@@ -74,6 +74,8 @@ function createTweenLiteFrame(target, duration, attr, frameValue: FrameValue, ta
 
 // All mutations of animation state
 export class Timelines extends Component<TimelineProps, TimelineState> {
+    static contextType = SvgEditorContext
+    context: SvgEditorContextType
     constructor(props) {
         super(props)
         this.state = {
@@ -84,7 +86,7 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
         }
     }
 
-    static buildAnimationsFromState(svgStates: Map<string, SortedMap<any>>, existsAnimations: SvgAnimations, currentTime: number): SvgAnimations {
+    static buildAnimationsFromState(svgStates: Map<string, SortedMap<SvgNode>>, existsAnimations: SvgAnimations, currentTime: number): SvgAnimations {
         // Recreate the animation frames every time, don't consider the time cost(it's very small currently)
         let svgAnimations: SvgAnimations = Map()
         svgStates.forEach((svgState, id) => {
@@ -157,7 +159,7 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                 })
             })
         });
-        AnimationSignal.next(time);
+        this.context.animationSignal.next(time);
     }
 
     animationHandle = 0

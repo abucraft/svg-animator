@@ -6,7 +6,8 @@ const tsImportPluginFactory = require('ts-import-plugin')
 
 const htmlPlugin = new HtmlWebPackPlugin({
     template: "./src/index.html",
-    filename: "./index.html"
+    filename: "./index.html",
+    favicon: './favicon.ico'
 });
 
 module.exports = {
@@ -25,6 +26,10 @@ module.exports = {
     },
     module: {
         rules: [
+            { 
+                test: /\.(svg|png|jpg|cur)/,
+                use: ['file-loader']
+            },
             {
                 test: /\.(j|t)sx?$/,
                 exclude: /node_modules/,
@@ -63,6 +68,6 @@ module.exports = {
     plugins: [
         new webpack.NamedModulesPlugin(),
         htmlPlugin,
-        new BundleAnalyzerPlugin()
+        //new BundleAnalyzerPlugin()
     ]
 };

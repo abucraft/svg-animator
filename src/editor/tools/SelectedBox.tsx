@@ -1,10 +1,10 @@
 import { Component, RefObject } from 'react'
-import { AnimationSignal } from '../../core/Store'
 import { Subscription } from 'rxjs';
 import { updateSvgAttribute } from '../../core/Actions';
 import { connect } from 'react-redux';
 import { domPaser, getAttributes, setAttributes } from '../../utils/Utils';
-import { Transform } from './Transform';
+import { TransformControl } from './TransformControl';
+import { SvgEditorContext } from '../../app/SvgEditorContext';
 
 type SelectedBoxProps = {
     svgRoot: SVGSVGElement
@@ -41,7 +41,9 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     bbox: Rect2D
     position: Point2D
     animationSubscription: Subscription
-    transform: Transform
+    transform: TransformControl
+    static contextType = SvgEditorContext
+    context: SvgEditorContextType
     constructor(props) {
         super(props)
         this.state = {
@@ -90,7 +92,6 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
             }
         })
         this.bbox = { ...this.bbox, x: this.bbox.x + dx, y: this.bbox.y + dy }
-        console.log(this.bbox, dx, dy)
         this.box.setAttribute('x', (this.bbox.x).toString())
         this.box.setAttribute('y', (this.bbox.y).toString())
         this.transform.setBBox(this.bbox)
@@ -124,8 +125,8 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
         this.props.svgRoot.appendChild(this.box)
         this.box.addEventListener('mousedown', this.onMouseDown)
         this.box.addEventListener('click', this.onClick)
-        this.animationSubscription = AnimationSignal.subscribe(this.updateAll)
-        this.transform = new Transform(this.props.svgRoot, bbox, this.state.selectedElements, this.updateAll)
+        this.animationSubscription = this.context.animationSignal.subscribe(this.updateAll)
+        this.transform = new TransformControl(this.props.svgRoot, bbox, this.state.selectedElements, this.updateAll)
     }
 
     updateBox = () => {

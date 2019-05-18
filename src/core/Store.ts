@@ -63,7 +63,7 @@ function updateSvgAttribute(state: SvgState, action: UpdateSvgAttributeAction): 
     let svgStates = state.svgStates;
     Map(attributesMap).forEach((v, id) => {
         let svgState = svgStates.get(id);
-        let nowState: SvgNode = svgState.get(currentTime) || { attributes: {} };
+        let nowState: SvgNode = svgState.get(currentTime) || { attributes: {}, transform: {} };
         nowState.attributes = { ...nowState.attributes, ...v.attributes };
         let newTimeStates = svgState.set(currentTime, nowState);
         svgStates = svgStates.set(id, newTimeStates);
@@ -115,9 +115,6 @@ const errorAlerter = store => next => action => {
         return next(addAlert('error', err.message))
     }
 }
-
-export const SVGRendered = new BehaviorSubject<SVGSVGElement>(null)
-export const AnimationSignal = new Subject<number>()
 
 import { composeWithDevTools } from 'redux-devtools-extension'
 

@@ -17,6 +17,10 @@ declare global {
         value: { [key: string]: any }
     }
 
+    interface TransformSvgElementsAction extends Action {
+        value: { [key: string]: Transform }
+    }
+
     type SelectSvgElementAction = EditSvgAction
 }
 
@@ -54,7 +58,7 @@ export function deselectSvgElementAll(): Action {
     }
 }
 
-export const UPDATE_SVG_ATTRIBUTE = "MOVE_SVG_ELEMENT"
+export const UPDATE_SVG_ATTRIBUTE = "UPDATE_SVG_ATTRIBUTE"
 
 export function updateSvgAttribute(attributesMap: { [key: string]: any }): UpdateSvgAttributeAction {
     return {
@@ -78,6 +82,15 @@ export function editSvgElements(value: Array<any>) {
     return {
         type: EDIT_SVG_ELEMENTS,
         value: value
+    }
+}
+
+export const TRANSFORM_SVG_ELEMENTS = "TRANSFORM_SVG_ELEMENTS";
+
+export function transformSvgElements(transformMap: { [key: string]: Transform }): TransformSvgElementsAction {
+    return {
+        type: TRANSFORM_SVG_ELEMENTS,
+        value: transformMap
     }
 }
 

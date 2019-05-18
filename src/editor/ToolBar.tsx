@@ -2,7 +2,7 @@ import { Component, ComponentClass, RefObject } from 'react'
 import * as React from 'react'
 import { Selector, ConnectedSelector } from './Selector'
 import './ToolBar.less'
-import { SVGRendered } from '../core/Store';
+import { SvgEditorContext } from '../app/SvgEditorContext';
 
 declare global {
     interface ToolBarState {
@@ -20,6 +20,8 @@ declare global {
 
 
 export default class ToolBar extends Component<any, ToolBarState> {
+    static contextType = SvgEditorContext
+    context: SvgEditorContextType
     constructor(props) {
         super(props)
         this.state = {
@@ -33,7 +35,7 @@ export default class ToolBar extends Component<any, ToolBarState> {
     }
 
     componentDidMount() {
-        SVGRendered.subscribe((root) => this.setState({ svgRoot: root }))
+        this.context.svgCreatedSignal.subscribe((root) => this.setState({ svgRoot: root }))
     }
 
     isToolActive = (tool) => {

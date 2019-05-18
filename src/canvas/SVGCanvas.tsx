@@ -5,7 +5,7 @@ import { connect } from 'react-redux'
 import { SizedComponent } from '../utils/SizedComponent'
 import { SortedMap } from '../utils/SortedMap'
 import { Map } from 'immutable'
-import { SVGRendered } from '../core/Store'
+import { SvgEditorContext } from '../app/SvgEditorContext';
 
 declare global {
     type SvgCanvasStateProps = {
@@ -29,6 +29,8 @@ function mapStateToProps(state: AppState): SvgCanvasStateProps {
 class SvgCanvas extends Component<SvgCanvasProps> {
     svgRoot: RefObject<SVGSVGElement>
     props: SvgCanvasProps
+    static contextType = SvgEditorContext
+    context: SvgEditorContextType
     constructor(props) {
         super(props);
         this.svgRoot = React.createRef();
@@ -57,7 +59,7 @@ class SvgCanvas extends Component<SvgCanvasProps> {
 
     componentDidMount() {
         this.updateSvgElements(Map(), this.props.svgStates)
-        SVGRendered.next(this.svgRoot.current);
+        this.context.svgCreatedSignal.next(this.svgRoot.current);
     }
 
     shouldComponentUpdate(nextProps: SvgCanvasProps, nextState) {
