@@ -7,6 +7,7 @@ import { Tooltip } from 'antd'
 import * as classNames from 'classnames'
 import Editors from './Editors'
 import { selectSvgElement, deselectSvgElementAll } from '../core/Actions';
+import { SvgEditorContext } from '../app/SvgEditorContext';
 
 declare global {
     interface ToolBaseProps {
@@ -34,6 +35,8 @@ function mapDispatchToProps(dispatch) {
 }
 
 export class Selector extends Component<SelectorProps> {
+    static contextType = SvgEditorContext
+    context: SvgEditorContextType
     constructor(props) {
         super(props)
     }
@@ -43,6 +46,7 @@ export class Selector extends Component<SelectorProps> {
     }
 
     onSvgClick = (event: MouseEvent) => {
+        if(this.context.eventLocked) return;
         console.log(event.srcElement);
         let id = event.srcElement.id;
         if (id.length > 0) {

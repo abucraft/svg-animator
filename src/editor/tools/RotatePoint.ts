@@ -6,6 +6,7 @@ type RotateLocation = 'nw' | 'ne' | 'sw' | 'se'
 
 export class RotatePoint {
     svgRoot: SVGSVGElement
+    svgEditorContext: SvgEditorContextType
     onMove: (p: DeltaPoint2D) => void
     onMoveEnd: () => void
     point: SVGElement
@@ -15,7 +16,9 @@ export class RotatePoint {
     center: Point2D
     pointSize = 4
     location: RotateLocation
-    constructor(svgRoot: SVGSVGElement,
+    constructor(
+        svgRoot: SVGSVGElement,
+        svgEditorContext: SvgEditorContextType,
         position: Point2D,
         center: Point2D,
         degree: number,
@@ -26,6 +29,7 @@ export class RotatePoint {
         this.center = center
         this.degree = degree
         this.svgRoot = svgRoot
+        this.svgEditorContext = svgEditorContext
         this.location = rotateLocation
         this.point = this.createPoint()
         this.svgRoot.append(this.point)
@@ -99,8 +103,8 @@ export class RotatePoint {
 
     onMouseDown = (event: MouseEvent) => {
         event.stopPropagation()
+        this.svgEditorContext.eventLocked = true
         this.mousePosition = { x: event.clientX, y: event.clientY }
-        window.addEventListener("click", this.onClick, true)
         window.addEventListener('mousemove', this.onMouseMove)
         window.addEventListener('mouseup', this.onMouseUp)
         return false
@@ -114,12 +118,11 @@ export class RotatePoint {
         console.log(delta, clientCenter, rad1, rad2)
         this.setDegree(this.degree + delta)
         this.mousePosition = { x: event.x, y: event.y }
-        setAttributes(this.point, { cx: this.pointPosition.x, cy: this.pointPosition.y })
     }
 
     onMouseUp = (event: MouseEvent) => {
         event.stopPropagation()
-        setTimeout(() => window.removeEventListener("click", this.onClick, true), 0)
+        setTimeout(() => this.svgEditorContext.eventLocked = false, 0)
         window.removeEventListener('mousemove', this.onMouseMove)
         window.removeEventListener('mouseup', this.onMouseUp)
         this.onMoveEnd()

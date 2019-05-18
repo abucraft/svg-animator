@@ -4,7 +4,6 @@ import { updateSvgAttribute, selectSvgElement } from "../../core/Actions";
 import { getAttributes, setAttributes } from "../../utils/Utils";
 import { RotatePoint } from "./RotatePoint";
 
-
 export class TransformControl {
     nwpoint: RectDragPoint
     nepoint: RectDragPoint
@@ -13,7 +12,7 @@ export class TransformControl {
     nwRotatePoint: RotatePoint
     bboxRaw: Rect2D
     selectSvgElements: SVGElement[]
-    constructor(svgRoot: SVGSVGElement, bboxRaw: Rect2D, selectedElements: SVGElement[], onResize: () => void) {
+    constructor(svgRoot: SVGSVGElement, svgEditorContext: SvgEditorContextType, bboxRaw: Rect2D, selectedElements: SVGElement[], onResize: () => void) {
         this.selectSvgElements = selectedElements
         this.bboxRaw = bboxRaw
         this.nwpoint = new RectDragPoint(svgRoot, { x: bboxRaw.x, y: bboxRaw.y }, (p) => {
@@ -68,7 +67,7 @@ export class TransformControl {
             })
             onResize()
         }, this.onTransformEnd, 'se-resize')
-        this.nwRotatePoint = new RotatePoint(svgRoot, { x: bboxRaw.x, y: bboxRaw.y }, this.getCenter(), 0, () => { }, () => { }, 'nw')
+        this.nwRotatePoint = new RotatePoint(svgRoot, svgEditorContext, { x: bboxRaw.x, y: bboxRaw.y }, this.getCenter(), 0, () => { }, () => { }, 'nw')
     }
 
     onTransformEnd = () => {
