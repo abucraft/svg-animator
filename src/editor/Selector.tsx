@@ -88,4 +88,4 @@ export class Selector extends Component<SelectorProps> {
     }
 }
 
-export const ConnectedSelector = connect((state, ownProps: ToolBaseProps) => ownProps, mapDispatchToProps)(Selector)
+export const ConnectedSelector = connect(null, mapDispatchToProps)(Selector)

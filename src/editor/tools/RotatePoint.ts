@@ -7,8 +7,8 @@ type RotateLocation = 'nw' | 'ne' | 'sw' | 'se'
 export class RotatePoint {
     svgRoot: SVGSVGElement
     svgEditorContext: SvgEditorContextType
-    onMove: (p: DeltaPoint2D) => void
-    onMoveEnd: () => void
+    onRotate: (degree: number) => void
+    onRotateEnd: () => void
     point: SVGElement
     mousePosition: Point2D
     pointPosition: Point2D
@@ -22,8 +22,8 @@ export class RotatePoint {
         position: Point2D,
         center: Point2D,
         degree: number,
-        onMove: (p: DeltaPoint2D) => void,
-        onMoveEnd: () => void,
+        onRotate: (degree: number) => void,
+        onRotateEnd: () => void,
         rotateLocation: RotateLocation) {
         this.pointPosition = position
         this.center = center
@@ -35,8 +35,8 @@ export class RotatePoint {
         this.svgRoot.append(this.point)
         this.point.addEventListener('mousedown', this.onMouseDown)
         this.point.addEventListener('click', this.onClick)
-        this.onMove = onMove
-        this.onMoveEnd = onMoveEnd
+        this.onRotate = onRotate
+        this.onRotateEnd = onRotateEnd
     }
 
     createPoint(): SVGElement {
@@ -47,9 +47,33 @@ export class RotatePoint {
         { x: 0 + this.pointSize, y: 0 - this.pointSize * 3 },
         { x: 0 + this.pointSize, y: 0 - this.pointSize },
         { x: 0 - this.pointSize, y: 0 - this.pointSize }]
+        switch (this.location) {
+            case "ne":
+                points = this.rotatePoints(points, 90)
+                break;
+            case "se":
+                points = this.rotatePoints(points, 180)
+                break;
+            case "sw":
+                points = this.rotatePoints(points, 270)
+                break;
+        }
         var path = domPaser.parseFromString(`<path xmlns="http://www.w3.org/2000/svg" class="rotate-point" d="${pointsToLinePath(points)}" vector-effect="non-scaling-stroke" stroke="black" stroke-width="0.5px" fill="white"/>`, "image/svg+xml").firstChild as any as SVGElement
         setTransform(path, this.caculateTransform())
         return path
+    }
+
+    rotatePoints(points: Point2D[], degree: number): Point2D[] {
+        let rotateMat = new Array(9);
+        fromRotation(rotateMat, degree2Rad(degree));
+        return points.map(point => {
+            let vec = [point.x, point.y, 1]
+            vec3Multiply(vec, vec, rotateMat)
+            return {
+                x: vec[0],
+                y: vec[1]
+            }
+        })
     }
 
     caculateTransform(): Transform {
@@ -64,7 +88,11 @@ export class RotatePoint {
         }
         return {
             translate: newPoint,
-            rotateDegree: this.degree
+            rotate: {
+                degree: this.degree,
+                centerX: 0,
+                centerY: 0
+            }
         }
     }
 
@@ -115,8 +143,9 @@ export class RotatePoint {
         let rad1 = Math.atan2(this.mousePosition.y - clientCenter.y, this.mousePosition.x - clientCenter.x)
         let rad2 = Math.atan2(event.clientY - clientCenter.y, event.clientX - clientCenter.x)
         let delta = rat2Degree(rad2 - rad1)
-        console.log(delta, clientCenter, rad1, rad2)
-        this.setDegree(this.degree + delta)
+        let newDegree = this.degree + delta
+        this.onRotate(newDegree)
+        this.setDegree(newDegree)
         this.mousePosition = { x: event.x, y: event.y }
     }
 
@@ -125,7 +154,7 @@ export class RotatePoint {
         setTimeout(() => this.svgEditorContext.eventLocked = false, 0)
         window.removeEventListener('mousemove', this.onMouseMove)
         window.removeEventListener('mouseup', this.onMouseUp)
-        this.onMoveEnd()
+        this.onRotateEnd()
         return false
     }
 

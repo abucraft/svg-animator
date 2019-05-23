@@ -5,8 +5,13 @@ export const initialSvg = `<ellipse cx="100" cy="50" rx="40" ry="40" stroke="bla
 declare global {
     interface Transform {
         translate?: Point2D
-        rotateDegree?: number
+        rotate?: RotateStruct
         scale?: Point2D
+    }
+    interface RotateStruct {
+        degree: number,
+        centerX: number,
+        centerY: number
     }
     interface SvgNode {
         nodeName?: string

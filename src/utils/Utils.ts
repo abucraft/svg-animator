@@ -54,8 +54,8 @@ export function setTransform(elm: SVGElement, transform: Transform) {
     var transformObj = {}
     if (transform.translate)
         transformObj["translate"] = [transform.translate.x.toString(), transform.translate.y.toString()]
-    if (transform.rotateDegree)
-        transformObj["rotate"] = [transform.rotateDegree]
+    if (transform.rotate)
+        transformObj["rotate"] = [transform.rotate.degree, transform.rotate.centerX, transform.rotate.centerY]
     elm.setAttribute('transform', apply(transformObj))
 }
 

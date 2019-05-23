@@ -1,7 +1,7 @@
 import { RectDragPoint } from "./DragPoint";
 import { dispatch } from "../../core/Store";
 import { updateSvgAttribute, selectSvgElement } from "../../core/Actions";
-import { getAttributes, setAttributes } from "../../utils/Utils";
+import { getAttributes, setAttributes, setTransform } from "../../utils/Utils";
 import { RotatePoint } from "./RotatePoint";
 
 export class TransformControl {
@@ -10,9 +10,12 @@ export class TransformControl {
     swpoint: RectDragPoint
     sepoint: RectDragPoint
     nwRotatePoint: RotatePoint
+    neRotatePoint: RotatePoint
+    swRotatePoint: RotatePoint
+    seRotatePoint: RotatePoint
     bboxRaw: Rect2D
-    selectSvgElements: SVGElement[]
-    constructor(svgRoot: SVGSVGElement, svgEditorContext: SvgEditorContextType, bboxRaw: Rect2D, selectedElements: SVGElement[], onResize: () => void) {
+    selectSvgElements: SVGGraphicsElement[]
+    constructor(svgRoot: SVGSVGElement, svgEditorContext: SvgEditorContextType, bboxRaw: Rect2D, selectedElements: SVGGraphicsElement[], onResize: () => void) {
         this.selectSvgElements = selectedElements
         this.bboxRaw = bboxRaw
         this.nwpoint = new RectDragPoint(svgRoot, { x: bboxRaw.x, y: bboxRaw.y }, (p) => {
@@ -67,7 +70,16 @@ export class TransformControl {
             })
             onResize()
         }, this.onTransformEnd, 'se-resize')
-        this.nwRotatePoint = new RotatePoint(svgRoot, svgEditorContext, { x: bboxRaw.x, y: bboxRaw.y }, this.getCenter(), 0, () => { }, () => { }, 'nw')
+        this.nwRotatePoint = new RotatePoint(svgRoot, svgEditorContext, { x: bboxRaw.x, y: bboxRaw.y }, this.getCenter(), 0, (degree) => {
+            selectedElements.forEach(elm => {
+                let bbox = elm.getBBox()
+                setTransform(elm, { rotate: { degree: degree, centerX: bbox.x + bbox.width / 2, centerY: bbox.y + bbox.height / 2 } })
+            })
+            onResize()
+        }, () => { }, 'nw')
+        this.neRotatePoint = new RotatePoint(svgRoot, svgEditorContext, { x: bboxRaw.x + bboxRaw.width, y: bboxRaw.y }, this.getCenter(), 0, () => { }, () => { }, 'ne')
+        this.swRotatePoint = new RotatePoint(svgRoot, svgEditorContext, { x: bboxRaw.x, y: bboxRaw.y + bboxRaw.height }, this.getCenter(), 0, () => { }, () => { }, 'sw')
+        this.seRotatePoint = new RotatePoint(svgRoot, svgEditorContext, { x: bboxRaw.x + bboxRaw.width, y: bboxRaw.y + bboxRaw.height }, this.getCenter(), 0, () => { }, () => { }, 'se')
     }
 
     onTransformEnd = () => {
@@ -92,7 +104,10 @@ export class TransformControl {
         this.nepoint.setPosition({ x: bboxRaw.x + bboxRaw.width, y: bboxRaw.y })
         this.swpoint.setPosition({ x: bboxRaw.x, y: bboxRaw.y + bboxRaw.height })
         this.sepoint.setPosition({ x: bboxRaw.x + bboxRaw.width, y: bboxRaw.y + bboxRaw.height })
-        this.nwRotatePoint.setPosition({ x: bboxRaw.x, y: bboxRaw.y }, this.getCenter(), 0)
+        this.nwRotatePoint.setPosition({ x: bboxRaw.x, y: bboxRaw.y }, center, 0)
+        this.neRotatePoint.setPosition({ x: bboxRaw.x + bboxRaw.width, y: bboxRaw.y }, center, 0)
+        this.swRotatePoint.setPosition({ x: bboxRaw.x, y: bboxRaw.y + bboxRaw.height }, center, 0)
+        this.seRotatePoint.setPosition({ x: bboxRaw.x + bboxRaw.width, y: bboxRaw.y + bboxRaw.height }, center, 0)
     }
 
     hide() {
@@ -100,6 +115,10 @@ export class TransformControl {
         this.nepoint.hide()
         this.swpoint.hide()
         this.sepoint.hide()
+        this.nwRotatePoint.hide()
+        this.neRotatePoint.hide()
+        this.swRotatePoint.hide()
+        this.seRotatePoint.hide()
     }
 
     show() {
@@ -107,6 +126,10 @@ export class TransformControl {
         this.nepoint.show()
         this.swpoint.show()
         this.sepoint.show()
+        this.nwRotatePoint.show()
+        this.neRotatePoint.show()
+        this.swRotatePoint.show()
+        this.seRotatePoint.show()
     }
 
     componentWillUnmount() {
