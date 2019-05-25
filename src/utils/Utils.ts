@@ -45,22 +45,22 @@ function parse(str: string): { [key: string]: string[] } {
 function apply(value: { [key: string]: string[] }): string {
     var res = ""
     Map(value).forEach((v, k) => {
-        res += `${k}(${v.join(' ')})`
+        res += `${k}(${v.join(' ')}) `
     })
     return res;
 }
 
 export function setTransform(elm: SVGElement, transform: Transform) {
-    var transformObj = {}
-    transformObj["translate"] = [transform.translateX || 0, transform.translateY || 0]
-    transformObj["rotate"] = [transform.rotation || 0, transform.xOrigin || 0, transform.yOrigin || 0]
-    elm.setAttribute('transform', apply(transformObj))
     elm._gsTransform = elm._gsTransform || {}
-    elm._gsTransform.x = transform.translateX
-    elm._gsTransform.y = transform.translateY
-    elm._gsTransform.rotation = transform.rotation
-    elm._gsTransform.xOrigin = transform.xOrigin
-    elm._gsTransform.yOrigin = transform.yOrigin
+    elm._gsTransform.x = transform.x || elm._gsTransform.x
+    elm._gsTransform.y = transform.y || elm._gsTransform.y
+    elm._gsTransform.rotation = transform.rotation || elm._gsTransform.rotation
+    elm._gsTransform.xOrigin = transform.xOrigin || elm._gsTransform.xOrigin
+    elm._gsTransform.yOrigin = transform.yOrigin || elm._gsTransform.yOrigin
+    var transformObj = {}
+    transformObj["translate"] = [elm._gsTransform.x || 0, elm._gsTransform.y || 0]
+    transformObj["rotate"] = [elm._gsTransform.rotation || 0, elm._gsTransform.xOrigin || 0, elm._gsTransform.yOrigin || 0]
+    elm.setAttribute('transform', apply(transformObj))
 }
 
 export function getTranslate(elm: SVGElement): Point2D {

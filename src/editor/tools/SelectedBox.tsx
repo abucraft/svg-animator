@@ -61,7 +61,6 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     }
 
     updateTransformFromElements() {
-        this.bbox = this.getBBox();
         if (this.state.selectedElements.length === 1) {
             let gsTransform = this.state.selectedElements[0]._gsTransform
             this.rotation = (gsTransform && gsTransform.rotation) || 0
@@ -75,18 +74,29 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     getBBox = () => {
         return this.state.selectedElements.reduce((prev: SVGRect, elm) => {
             let box2 = elm.getBBox();
+            let translateX = elm._gsTransform.x || 0
+            let translateY = elm._gsTransform.y || 0
             if (prev) {
-                let right = prev.x + prev.width;
-                let bottom = prev.y + prev.height;
-                let right2 = box2.x + box2.width;
-                let bottom2 = box2.y + box2.height;
-                prev.x = Math.min(prev.x, box2.x);
-                prev.y = Math.min(prev.y, box2.y)
+                let left = prev.x
+                let top = prev.y
+                let right = left + prev.width;
+                let bottom = top + prev.height;
+                let left2 = box2.x + translateX
+                let top2 = box2.y + translateY
+                let right2 = left2 + box2.width;
+                let bottom2 = top2 + box2.height;
+                prev.x = Math.min(prev.x, left2);
+                prev.y = Math.min(prev.y, top2)
                 prev.width = Math.max(right, right2) - prev.x;
                 prev.height = Math.max(bottom, bottom2) - prev.y;
                 return prev;
             } else {
-                return box2;
+                return {
+                    x: box2.x + translateX,
+                    y: box2.y + translateY,
+                    width: box2.width,
+                    height: box2.height
+                }
             }
         }, null)
     }
@@ -94,7 +104,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     onMouseDown = (event: MouseEvent) => {
         event.stopPropagation()
         this.position = { x: event.clientX, y: event.clientY }
-        this.bbox = getAttributes(this.box, { x: 'number', y: 'number', width: 'number', height: 'number' })
+        this.bbox = this.box.getBBox()
         window.addEventListener('mousemove', this.onMouseMove)
         window.addEventListener('mouseup', this.onMouseUp)
     }
@@ -104,11 +114,8 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
         let dx = event.clientX - this.position.x
         let dy = event.clientY - this.position.y
         this.position = { x: event.clientX, y: event.clientY }
-        this.state.selectedElements.forEach((elm, idx) => {
-            if (elm.tagName === 'ellipse') {
-                let attrpox = getAttributes(elm, { cx: 'number', cy: 'number' })
-                setAttributes(elm, { cx: attrpox.cx + dx, cy: attrpox.cy + dy })
-            }
+        this.state.selectedElements.forEach(elm => {
+            setTransform(elm, { x: (elm._gsTransform.x || 0) + dx, y: (elm._gsTransform.y || 0) + dy })
         })
         this.updateAll()
     }
@@ -119,13 +126,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
         window.removeEventListener('mouseup', this.onMouseUp)
         let attributesMap = {}
         this.state.selectedElements.forEach(elem => {
-            if (elem.tagName === 'ellipse') {
-                let attributes = {
-                    cx: elem.getAttribute('cx'),
-                    cy: elem.getAttribute('cy')
-                }
-                attributesMap[elem.id] = { attributes }
-            }
+            attributesMap[elem.id] = { transform: elem._gsTransform }
         });
         this.props.onMoveSvgElement(attributesMap);
     }
@@ -150,8 +151,8 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
         this.box.setAttribute('width', this.bbox.width.toString());
         this.box.setAttribute('height', this.bbox.height.toString());
         setTransform(this.box, {
-            translateX: this.bbox.x,
-            translateY: this.bbox.y,
+            x: this.bbox.x,
+            y: this.bbox.y,
             rotation: this.rotation,
             xOrigin: this.bbox.width / 2,
             yOrigin: this.bbox.height / 2
@@ -159,6 +160,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     }
 
     updateAll = () => {
+        this.bbox = this.getBBox()
         this.updateTransformFromElements()
         this.updateBox()
         this.transformControl.setTransform(this.bbox, this.rotation)

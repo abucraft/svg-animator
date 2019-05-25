@@ -12,9 +12,10 @@ declare global {
         value: string
     }
 
+    interface AttributesAndTransform { attributes?: { [key: string]: any }, transform?: Transform }
     interface UpdateSvgAttributeAction extends Action {
         // id --> attributes
-        value: { [key: string]: any }
+        value: { [key: string]: AttributesAndTransform }
     }
 
     interface TransformSvgElementsAction extends Action {

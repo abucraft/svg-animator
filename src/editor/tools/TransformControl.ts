@@ -1,8 +1,9 @@
-import { RectDragPoint } from "./DragPoint";
+import { RectDragPoint, RotateLocation } from "./DragPoint";
 import { dispatch } from "../../core/Store";
 import { updateSvgAttribute, selectSvgElement } from "../../core/Actions";
 import { getAttributes, setAttributes, setTransform } from "../../utils/Utils";
 import { RotatePoint } from "./RotatePoint";
+import { fromRotation, degree2Rad, invert, vec3Multiply } from "../../utils/mat3";
 
 export class TransformControl {
     nwpoint: RectDragPoint
@@ -14,70 +15,64 @@ export class TransformControl {
     swRotatePoint: RotatePoint
     seRotatePoint: RotatePoint
     bboxRaw: Rect2D
+    rotation: number
     selectSvgElements: SVGGraphicsElement[]
     onResize: () => void
     constructor(svgRoot: SVGSVGElement, svgEditorContext: SvgEditorContextType, selectedElements: SVGGraphicsElement[], onResize: () => void) {
         this.selectSvgElements = selectedElements
+        this.rotation = 0
         this.onResize = onResize
-        this.nwpoint = new RectDragPoint(svgRoot, (p) => {
-            selectedElements.forEach(elm => {
-                if (elm.nodeName === 'ellipse') {
-                    let { cx, cy, rx, ry } = getAttributes(elm, { cx: 'number', cy: 'number', rx: 'number', ry: 'number' })
-                    cx = cx + (p.dx / 2)
-                    cy = cy + (p.dy / 2)
-                    rx = rx - (p.dx / 2)
-                    ry = ry - (p.dy / 2)
-                    setAttributes(elm, { cx, cy, rx, ry })
-                }
-            })
-            onResize()
-        }, this.onTransformEnd, 'nw')
-        this.nepoint = new RectDragPoint(svgRoot, (p) => {
-            selectedElements.forEach(elm => {
-                if (elm.nodeName === 'ellipse') {
-                    let { cx, cy, rx, ry } = getAttributes(elm, { cx: 'number', cy: 'number', rx: 'number', ry: 'number' })
-                    cx = cx + (p.dx / 2)
-                    cy = cy + (p.dy / 2)
-                    rx = rx + (p.dx / 2)
-                    ry = ry - (p.dy / 2)
-                    setAttributes(elm, { cx, cy, rx, ry })
-                }
-            })
-            onResize()
-        }, this.onTransformEnd, 'ne')
-        this.swpoint = new RectDragPoint(svgRoot, p => {
-            selectedElements.forEach(elm => {
-                if (elm.nodeName === 'ellipse') {
-                    let { cx, cy, rx, ry } = getAttributes(elm, { cx: 'number', cy: 'number', rx: 'number', ry: 'number' })
-                    cx = cx + (p.dx / 2)
-                    cy = cy + (p.dy / 2)
-                    rx = rx - (p.dx / 2)
-                    ry = ry + (p.dy / 2)
-                    setAttributes(elm, { cx, cy, rx, ry })
-                }
-            })
-            onResize()
-        }, this.onTransformEnd, 'sw')
-        this.sepoint = new RectDragPoint(svgRoot, p => {
-            selectedElements.forEach(elm => {
-                if (elm.nodeName === 'ellipse') {
-                    let { cx, cy, rx, ry } = getAttributes(elm, { cx: 'number', cy: 'number', rx: 'number', ry: 'number' })
-                    cx = cx + (p.dx / 2)
-                    cy = cy + (p.dy / 2)
-                    rx = rx + (p.dx / 2)
-                    ry = ry + (p.dy / 2)
-                    setAttributes(elm, { cx, cy, rx, ry })
-                }
-            })
-            onResize()
-        }, this.onTransformEnd, 'se')
+        this.nwpoint = new RectDragPoint(svgRoot, this.onResizeElement('nw'), this.onResizeEnd, 'nw')
+        this.nepoint = new RectDragPoint(svgRoot, this.onResizeElement('ne'), this.onResizeEnd, 'ne')
+        this.swpoint = new RectDragPoint(svgRoot, this.onResizeElement('sw'), this.onResizeEnd, 'sw')
+        this.sepoint = new RectDragPoint(svgRoot, this.onResizeElement('se'), this.onResizeEnd, 'se')
         this.nwRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, () => { }, 'nw')
         this.neRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, () => { }, 'ne')
         this.swRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, () => { }, 'sw')
         this.seRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, () => { }, 'se')
     }
 
+    onResizeElement = (location: RotateLocation) => (p: DeltaPoint2D) => {
+        let reverseMat = new Array(9)
+        fromRotation(reverseMat, degree2Rad(this.rotation))
+        invert(reverseMat, reverseMat)
+        let targetVec = [p.dx, p.dy, 1]
+        vec3Multiply(targetVec, targetVec, reverseMat)
+        let dx = targetVec[0]
+        let dy = targetVec[1]
+        this.selectSvgElements.forEach(elm => {
+            if (elm.nodeName === 'ellipse') {
+                let { rx, ry } = getAttributes(elm, { cx: 'number', cy: 'number', rx: 'number', ry: 'number' })
+                switch (location) {
+                    case "nw":
+                        rx = rx - (dx / 2)
+                        ry = ry - (dy / 2)
+                        break;
+                    case "ne":
+                        rx = rx + (dx / 2)
+                        ry = ry - (dy / 2)
+                        break;
+                    case 'sw':
+                        rx = rx - (dx / 2)
+                        ry = ry + (dy / 2)
+                        break;
+                    case 'se':
+                        rx = rx + (dx / 2)
+                        ry = ry + (dy / 2)
+                        break;
+                }
+                setAttributes(elm, { rx, ry })
+                let bbox = elm.getBBox()
+                let transformX = elm._gsTransform.x || 0
+                let transformY = elm._gsTransform.y || 0
+                setTransform(elm, { x: transformX + p.dx / 2, y: transformY + p.dy / 2, rotation: this.rotation, xOrigin: bbox.x + bbox.width / 2, yOrigin: bbox.y + bbox.height / 2 })
+            }
+        })
+        this.onResize()
+    }
+
     onRotate = (degree: number) => {
+        this.rotation = degree
         this.selectSvgElements.forEach(elm => {
             let bbox = elm.getBBox()
             setTransform(elm, { rotation: degree, xOrigin: bbox.x + bbox.width / 2, yOrigin: bbox.y + bbox.height / 2 })
@@ -85,12 +80,38 @@ export class TransformControl {
         this.onResize()
     }
 
-    onTransformEnd = () => {
-        let attributesMap = {}
+    onRotateEnd = () => {
+        let attributesMap: AttributesAndTransform = {}
+        this.selectSvgElements.forEach(elm => {
+            attributesMap[elm.id] = {
+                attributes: {},
+                transform: {
+                    x: elm._gsTransform.x,
+                    y: elm._gsTransform.y,
+                    rotation: elm._gsTransform.rotation,
+                    xOrigin: elm._gsTransform.xOrigin,
+                    yOrigin: elm._gsTransform.yOrigin
+                }
+            }
+        })
+        dispatch(updateSvgAttribute(attributesMap))
+    }
+
+    onResizeEnd = () => {
+        let attributesMap: AttributesAndTransform = {}
         this.selectSvgElements.forEach(elm => {
             if (elm.nodeName === 'ellipse') {
-                let attributes = getAttributes(elm, { cx: 'number', cy: 'number', rx: 'number', ry: 'number' })
-                attributesMap[elm.id] = { attributes }
+                let attributes = getAttributes(elm, { rx: 'number', ry: 'number' })
+                attributesMap[elm.id] = {
+                    attributes,
+                    transform: {
+                        x: elm._gsTransform.x,
+                        y: elm._gsTransform.y,
+                        rotation: elm._gsTransform.rotation,
+                        xOrigin: elm._gsTransform.xOrigin,
+                        yOrigin: elm._gsTransform.yOrigin
+                    }
+                }
             }
         })
         dispatch(updateSvgAttribute(attributesMap))

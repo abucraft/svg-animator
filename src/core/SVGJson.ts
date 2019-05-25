@@ -4,8 +4,8 @@ const xmlParserStr = "application/xml"
 export const initialSvg = `<ellipse cx="100" cy="50" rx="40" ry="40" stroke="black" stroke-width="2" fill="red"/>`;
 declare global {
     interface Transform {
-        translateX?: number
-        translateY?: number
+        x?: number
+        y?: number
         rotation?: number
         xOrigin?: number
         yOrigin?: number
@@ -20,7 +20,7 @@ declare global {
     }
 }
 export function nodeToJson(node: Element): SvgNode {
-    let svgjson = {}
+    let svgjson = { attributes: {}, transform: {} }
     svgjson['nodeName'] = node.nodeName
     if (node.attributes) {
         svgjson["attributes"] = {}
@@ -34,7 +34,7 @@ export function nodeToJson(node: Element): SvgNode {
             svgjson['children'].push(nodeToJson(children[i]))
         }
     }
-    return <any>svgjson
+    return svgjson
 }
 
 export function svgToJson(svg): SvgNode {

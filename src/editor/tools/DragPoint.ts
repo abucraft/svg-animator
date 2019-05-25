@@ -37,8 +37,8 @@ export abstract class BasePoint {
         fromRotation(rotateMat, degree2Rad(this.degree))
         vec3Multiply(vec, vec, rotateMat)
         return {
-            translateX: this.center.x + vec[0],
-            translateY: this.center.y + vec[1],
+            x: this.center.x + vec[0],
+            y: this.center.y + vec[1],
             rotation: this.degree
         }
     }

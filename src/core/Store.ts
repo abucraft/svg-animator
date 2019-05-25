@@ -65,6 +65,7 @@ function updateSvgAttribute(state: SvgState, action: UpdateSvgAttributeAction): 
         let svgState = svgStates.get(id);
         let nowState: SvgNode = svgState.get(currentTime) || { attributes: {}, transform: {} };
         nowState.attributes = { ...nowState.attributes, ...v.attributes };
+        nowState.transform = { ...nowState.transform, ...v.transform }
         let newTimeStates = svgState.set(currentTime, nowState);
         svgStates = svgStates.set(id, newTimeStates);
     });
