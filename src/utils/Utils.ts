@@ -52,11 +52,15 @@ function apply(value: { [key: string]: string[] }): string {
 
 export function setTransform(elm: SVGElement, transform: Transform) {
     var transformObj = {}
-    if (transform.translate)
-        transformObj["translate"] = [transform.translate.x.toString(), transform.translate.y.toString()]
-    if (transform.rotate)
-        transformObj["rotate"] = [transform.rotate.degree, transform.rotate.centerX, transform.rotate.centerY]
+    transformObj["translate"] = [transform.translateX || 0, transform.translateY || 0]
+    transformObj["rotate"] = [transform.rotation || 0, transform.xOrigin || 0, transform.yOrigin || 0]
     elm.setAttribute('transform', apply(transformObj))
+    elm._gsTransform = elm._gsTransform || {}
+    elm._gsTransform.x = transform.translateX
+    elm._gsTransform.y = transform.translateY
+    elm._gsTransform.rotation = transform.rotation
+    elm._gsTransform.xOrigin = transform.xOrigin
+    elm._gsTransform.yOrigin = transform.yOrigin
 }
 
 export function getTranslate(elm: SVGElement): Point2D {

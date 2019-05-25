@@ -4,14 +4,13 @@ const xmlParserStr = "application/xml"
 export const initialSvg = `<ellipse cx="100" cy="50" rx="40" ry="40" stroke="black" stroke-width="2" fill="red"/>`;
 declare global {
     interface Transform {
-        translate?: Point2D
-        rotate?: RotateStruct
-        scale?: Point2D
-    }
-    interface RotateStruct {
-        degree: number,
-        centerX: number,
-        centerY: number
+        translateX?: number
+        translateY?: number
+        rotation?: number
+        xOrigin?: number
+        yOrigin?: number
+        scaleX?: number
+        scaleY?: number
     }
     interface SvgNode {
         nodeName?: string

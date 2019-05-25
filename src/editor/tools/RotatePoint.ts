@@ -1,10 +1,10 @@
 import { domPaser, setAttributes, pointsToLinePath, setTransform } from "../../utils/Utils";
 import './RotatePoint.css'
 import { fromRotation, vec3Multiply, degree2Rad, rat2Degree } from "../../utils/mat3";
+import { RotateLocation, BasePoint } from "./DragPoint";
 
-type RotateLocation = 'nw' | 'ne' | 'sw' | 'se'
 
-export class RotatePoint {
+export class RotatePoint extends BasePoint {
     svgRoot: SVGSVGElement
     svgEditorContext: SvgEditorContextType
     onRotate: (degree: number) => void
@@ -19,20 +19,11 @@ export class RotatePoint {
     constructor(
         svgRoot: SVGSVGElement,
         svgEditorContext: SvgEditorContextType,
-        position: Point2D,
-        center: Point2D,
-        degree: number,
         onRotate: (degree: number) => void,
         onRotateEnd: () => void,
         rotateLocation: RotateLocation) {
-        this.pointPosition = position
-        this.center = center
-        this.degree = degree
-        this.svgRoot = svgRoot
+        super(svgRoot, rotateLocation)
         this.svgEditorContext = svgEditorContext
-        this.location = rotateLocation
-        this.point = this.createPoint()
-        this.svgRoot.append(this.point)
         this.point.addEventListener('mousedown', this.onMouseDown)
         this.point.addEventListener('click', this.onClick)
         this.onRotate = onRotate
@@ -59,7 +50,6 @@ export class RotatePoint {
                 break;
         }
         var path = domPaser.parseFromString(`<path xmlns="http://www.w3.org/2000/svg" class="rotate-point" d="${pointsToLinePath(points)}" vector-effect="non-scaling-stroke" stroke="black" stroke-width="0.5px" fill="white"/>`, "image/svg+xml").firstChild as any as SVGElement
-        setTransform(path, this.caculateTransform())
         return path
     }
 
@@ -74,26 +64,6 @@ export class RotatePoint {
                 y: vec[1]
             }
         })
-    }
-
-    caculateTransform(): Transform {
-        // rotate position around center by degree
-        let vec = [this.pointPosition.x - this.center.x, this.pointPosition.y - this.center.y, 1]
-        let rotateMat = new Array(9);
-        fromRotation(rotateMat, degree2Rad(this.degree))
-        vec3Multiply(vec, vec, rotateMat)
-        let newPoint = {
-            x: this.center.x + vec[0],
-            y: this.center.y + vec[1]
-        }
-        return {
-            translate: newPoint,
-            rotate: {
-                degree: this.degree,
-                centerX: 0,
-                centerY: 0
-            }
-        }
     }
 
     getClientCenter(): Point2D {
@@ -111,13 +81,6 @@ export class RotatePoint {
             }
         }
 
-    }
-
-    setPosition(position: Point2D, center: Point2D, degree: number): void {
-        this.pointPosition = position;
-        this.center = center
-        this.degree = degree
-        setTransform(this.point, this.caculateTransform());
     }
 
     setDegree(degree: number) {

@@ -1,27 +1,58 @@
-import { domPaser, setAttributes } from "../../utils/Utils";
+import { domPaser, setAttributes, setTransform } from "../../utils/Utils";
+import { fromRotation, degree2Rad, vec3Multiply } from "../../utils/mat3";
 
-type DragCursor = 'nw-resize' | 'ne-resize' | 'sw-resize' | 'se-resize'
-
-
-abstract class BaseDragPoint {
+export type DragCursor = 'nw-resize' | 'ne-resize' | 'sw-resize' | 'se-resize'
+export type RotateLocation = 'nw' | 'ne' | 'sw' | 'se'
+export abstract class BasePoint {
     svgRoot: SVGSVGElement
-    onMove: (p: DeltaPoint2D) => void
-    onMoveEnd: () => void
     point: SVGElement
     mousePosition: Point2D
     pointPosition: Point2D
+    degree: number
+    center: Point2D
     pointSize = 4
-    cursor: DragCursor
-    constructor(svgRoot: SVGSVGElement,
-        position: Point2D,
-        onMove: (p: DeltaPoint2D) => void,
-        onMoveEnd: () => void,
-        cursor: DragCursor) {
-        this.pointPosition = position
-        this.cursor = cursor
+    location: RotateLocation
+    constructor(
+        svgRoot: SVGSVGElement,
+        location: RotateLocation) {
+        this.location = location
         this.svgRoot = svgRoot
         this.point = this.createPoint()
         this.svgRoot.append(this.point)
+    }
+    abstract createPoint(): SVGElement
+
+    setPosition(position: Point2D, center: Point2D, degree: number): void {
+        this.pointPosition = position;
+        this.center = center
+        this.degree = degree
+        setTransform(this.point, this.caculateTransform());
+    }
+
+
+    caculateTransform(): Transform {
+        // rotate position around center by degree
+        let vec = [this.pointPosition.x - this.center.x, this.pointPosition.y - this.center.y, 1]
+        let rotateMat = new Array(9);
+        fromRotation(rotateMat, degree2Rad(this.degree))
+        vec3Multiply(vec, vec, rotateMat)
+        return {
+            translateX: this.center.x + vec[0],
+            translateY: this.center.y + vec[1],
+            rotation: this.degree
+        }
+    }
+
+}
+
+abstract class BaseDragPoint extends BasePoint {
+    onMove: (p: DeltaPoint2D) => void
+    onMoveEnd: () => void
+    constructor(svgRoot: SVGSVGElement,
+        onMove: (p: DeltaPoint2D) => void,
+        onMoveEnd: () => void,
+        location: RotateLocation) {
+        super(svgRoot, location)
         this.point.addEventListener('mousedown', this.onMouseDown)
         this.point.addEventListener('click', this.onClick)
         this.onMove = onMove
@@ -29,7 +60,6 @@ abstract class BaseDragPoint {
     }
 
     abstract createPoint(): SVGElement
-    abstract setPosition(position: Point2D): void
 
     onClick = (event: MouseEvent) => {
         event.stopPropagation()
@@ -76,22 +106,13 @@ abstract class BaseDragPoint {
 
 export class CircleDragPoint extends BaseDragPoint {
     createPoint(): SVGElement {
-        return domPaser.parseFromString(`<circle xmlns="http://www.w3.org/2000/svg" style="cursor:${this.cursor};" cx="${this.pointPosition.x}" cy="${this.pointPosition.y}" r="${this.pointSize}" stroke="black" stroke-width="0.5px" fill="white"/>`, "image/svg+xml").firstChild as any as SVGElement
-    }
-
-    setPosition(position: Point2D) {
-        setAttributes(this.point, { cx: position.x, cy: position.y })
+        return domPaser.parseFromString(`<circle xmlns="http://www.w3.org/2000/svg" style="cursor:${this.location}-resize;" cx="0" cy="0" r="${this.pointSize}" stroke="black" stroke-width="0.5px" fill="white"/>`, "image/svg+xml").firstChild as any as SVGElement
     }
 }
 
 
 export class RectDragPoint extends BaseDragPoint {
     createPoint(): SVGElement {
-        return domPaser.parseFromString(`<rect xmlns="http://www.w3.org/2000/svg" style="cursor:${this.cursor};" x="${this.pointPosition.x - this.pointSize}" y="${this.pointPosition.y - this.pointSize}" width="${this.pointSize * 2}" height="${this.pointSize * 2}" stroke="black" stroke-width="0.5px" fill="white"/>`, "image/svg+xml").firstChild as any as SVGElement
+        return domPaser.parseFromString(`<rect xmlns="http://www.w3.org/2000/svg" style="cursor:${this.location}-resize;" x="${-this.pointSize}" y="${-this.pointSize}" width="${this.pointSize * 2}" height="${this.pointSize * 2}" stroke="black" stroke-width="0.5px" fill="white"/>`, "image/svg+xml").firstChild as any as SVGElement
     }
-    setPosition(position: Point2D): void {
-        setAttributes(this.point, { x: position.x - this.pointSize, y: position.y - this.pointSize })
-    }
-
-
 }
