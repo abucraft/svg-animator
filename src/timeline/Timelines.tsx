@@ -2,7 +2,7 @@ import { Component } from 'react'
 import * as React from 'react'
 import { connect } from 'react-redux'
 
-import { TweenLite } from 'gsap/umd/TweenMax'
+import { TweenMax } from 'gsap/umd/TweenMax'
 import { Map, List } from 'immutable'
 
 import { Object } from 'core-js';
@@ -37,7 +37,7 @@ declare global {
 
     type SvgAnimationFrame = {
         value: FrameValue
-        tweenLite: TweenLite
+        tweenLite: TweenMax
     }
 
     // {id: {attribute: { frame: value }}}
@@ -66,10 +66,31 @@ function mapDispatchToProps(dispatch): TimelineDispatchProps {
     }
 }
 
-function createTweenLiteFrame(target, duration, attr, frameValue: FrameValue, targetTime: number) {
+function createTweenMaxFrame(target, duration, attr, frameValue: FrameValue, targetTime: number) {
     let fromObj = { [attr]: frameValue.from }
     let toObj = { [attr]: frameValue.to }
-    return TweenLite.fromTo(target, duration, { attr: fromObj }, { attr: toObj }).pause().seek(targetTime)
+    return TweenMax.fromTo(target, duration, { attr: fromObj }, { attr: toObj }).pause().seek(targetTime)
+}
+
+function createTweenMaxTransformFrame(target, duration, fromTransform: Transform, toTransform: Transform, targetTime: number) {
+    return TweenMax.fromTo(target, duration, fromTransform, toTransform).pause().seek(targetTime)
+}
+
+function setUpInitTransformStack(initTransform): { [key: string]: TimeAndValue } {
+    let keys = ["x", "y", "rotation", "xOrigin", "yOrigin"]
+    let v: { [key: string]: TimeAndValue } = {}
+    keys.forEach(k => {
+        v[k] = {
+            value: initTransform[k] || 0,
+            time: 0
+        }
+    })
+    return v
+}
+
+type TimeAndValue = {
+    time: number,
+    value: any
 }
 
 // All mutations of animation state
@@ -93,11 +114,78 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
             let keys = svgState.keys()
             let prevTime = parseFloat(keys[0])
             let initState = svgState.get(prevTime)
-            let stateStack: { [key: string]: { time: number, value: any } } = {}
+            let stateStack: { [key: string]: TimeAndValue } = {}
+            let transformStack: { [key: string]: TimeAndValue } = setUpInitTransformStack(initState.transform)
             let singleSvgAnimations = Map<string, Map<FrameKey, SvgAnimationFrame>>()
             for (let i = 1; i < keys.length; i++) {
                 let curTime = parseFloat(keys[i])
                 let state = svgState.get(curTime)
+                if (state.transform) {
+                    let transform = state.transform
+                    if (transform.x || transform.y) {
+                        let fromXObj = transformStack["x"]
+                        let fromYObj = transformStack["y"]
+                        let fromX = fromXObj.value
+                        let fromY = fromYObj.value
+                        let startTime = Math.max(fromYObj.time, fromXObj.time)
+                        transformStack["x"] = { time: curTime, value: transform.x || 0 }
+                        transformStack["y"] = { time: curTime, value: transform.y || 0 }
+                        let toX = transform.x || 0
+                        let toY = transform.y || 0
+                        if (toX !== fromX || toY !== fromY) {
+                            let translateAttr = "translate(x,y)"
+                            let fromValue = {
+                                x: fromX,
+                                y: fromY
+                            }
+                            let toValue = {
+                                x: toX,
+                                y: toY
+                            }
+                            if (singleSvgAnimations.get(translateAttr) === undefined)
+                                singleSvgAnimations = singleSvgAnimations.set(translateAttr, Map());
+                            singleSvgAnimations = singleSvgAnimations.setIn([translateAttr, List([startTime, curTime])], {
+                                value: {
+                                    from: fromValue,
+                                    to: toValue
+                                },
+                                tweenLite: createTweenMaxTransformFrame(document.getElementById(initState.attributes.id), curTime - startTime, fromValue, toValue, currentTime - startTime)
+                            })
+                        }
+                    }
+                    if (transform.rotation || transform.xOrigin || transform.yOrigin) {
+                        let fromRotation = transformStack["rotation"].value
+                        let fromXOrigin = transformStack["xOrigin"].value
+                        let fromYOrigin = transformStack["yOrigin"].value
+                        let startTime = Math.max(transformStack["rotation"].time, transformStack["xOrigin"].time, transformStack["yOrigin"].time)
+                        let toRotation = transform.rotation || 0
+                        let toXOrigin = transform.xOrigin || 0
+                        let toYOrigin = transform.yOrigin || 0
+                        transformStack["rotation"] = { time: curTime, value: toRotation }
+                        transformStack["xOrigin"] = { time: curTime, value: toXOrigin }
+                        transformStack["yOrigin"] = { time: curTime, value: toYOrigin }
+                        if (toRotation !== fromRotation || toXOrigin !== fromXOrigin || toYOrigin !== fromYOrigin) {
+                            let rotationAttr = "rotate(deg,x,y)"
+                            let fromValue = {
+                                rotation: fromRotation,
+                                //transformOrigin: `${fromXOrigin} ${fromYOrigin}`
+                            }
+                            let toValue = {
+                                rotation: toRotation,
+                                //transformOrigin: `${toXOrigin} ${toYOrigin}`
+                            }
+                            if (singleSvgAnimations.get(rotationAttr) === undefined)
+                                singleSvgAnimations = singleSvgAnimations.set(rotationAttr, Map());
+                            singleSvgAnimations = singleSvgAnimations.setIn([rotationAttr, List([startTime, curTime])], {
+                                value: {
+                                    from: fromValue,
+                                    to: toValue
+                                },
+                                tweenLite: createTweenMaxTransformFrame(document.getElementById(initState.attributes.id), curTime - startTime, fromValue, toValue, currentTime - startTime)
+                            })
+                        }
+                    }
+                }
                 if (state.attributes) {
                     for (let [attr, toValue] of Object.entries(state.attributes)) {
                         let localPrevTime
@@ -128,7 +216,7 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                         if (singleSvgAnimations.get(attr) === undefined)
                             singleSvgAnimations = singleSvgAnimations.set(attr, Map());
                         if (changed) {
-                            singleSvgAnimations = singleSvgAnimations.setIn([attr, frameKey], { value: animation, tweenLite: createTweenLiteFrame(document.getElementById(initState.attributes.id), curTime - localPrevTime, attr, { from: fromValue, to: toValue }, currentTime - frameKey.get(0)) })
+                            singleSvgAnimations = singleSvgAnimations.setIn([attr, frameKey], { value: animation, tweenLite: createTweenMaxFrame(document.getElementById(initState.attributes.id), curTime - localPrevTime, attr, { from: fromValue, to: toValue }, currentTime - frameKey.get(0)) })
                         }
                     }
                 }

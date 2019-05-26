@@ -160,10 +160,12 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     }
 
     updateAll = () => {
-        this.bbox = this.getBBox()
-        this.updateTransformFromElements()
-        this.updateBox()
-        this.transformControl.setTransform(this.bbox, this.rotation)
+        if (this.state.selectedElements.length > 0) {
+            this.bbox = this.getBBox()
+            this.updateTransformFromElements()
+            this.updateBox()
+            this.transformControl.setTransform(this.bbox, this.rotation)
+        }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -192,6 +194,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     show() {
         this.props.svgRoot.append(this.box)
         this.transformControl.show()
+        this.updateAll()
     }
 
     render() {

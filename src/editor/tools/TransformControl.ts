@@ -26,10 +26,10 @@ export class TransformControl {
         this.nepoint = new RectDragPoint(svgRoot, this.onResizeElement('ne'), this.onResizeEnd, 'ne')
         this.swpoint = new RectDragPoint(svgRoot, this.onResizeElement('sw'), this.onResizeEnd, 'sw')
         this.sepoint = new RectDragPoint(svgRoot, this.onResizeElement('se'), this.onResizeEnd, 'se')
-        this.nwRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, () => { }, 'nw')
-        this.neRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, () => { }, 'ne')
-        this.swRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, () => { }, 'sw')
-        this.seRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, () => { }, 'se')
+        this.nwRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, this.onRotateEnd, 'nw')
+        this.neRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, this.onRotateEnd, 'ne')
+        this.swRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, this.onRotateEnd, 'sw')
+        this.seRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, this.onRotateEnd, 'se')
     }
 
     onResizeElement = (location: RotateLocation) => (p: DeltaPoint2D) => {
