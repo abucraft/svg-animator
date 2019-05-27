@@ -68,7 +68,11 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     }
 
     componentDidUpdate() {
-
+        if (this.props.selectedElementIds.length == 0) {
+            this.hide()
+        } else {
+            this.show()
+        }
     }
 
     getBBox = () => {
@@ -166,15 +170,6 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
             this.updateBox()
             this.transformControl.setTransform(this.bbox, this.rotation)
         }
-    }
-
-    shouldComponentUpdate(nextProps, nextState) {
-        if (nextProps.selectedElementIds.length == 0) {
-            this.hide()
-        } else {
-            this.show()
-        }
-        return false;
     }
 
     componentWillUnmount() {

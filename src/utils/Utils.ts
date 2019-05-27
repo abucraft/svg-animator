@@ -52,11 +52,11 @@ function apply(value: { [key: string]: string[] }): string {
 
 export function setTransform(elm: SVGElement, transform: Transform) {
     elm._gsTransform = elm._gsTransform || {}
-    elm._gsTransform.x = transform.x || elm._gsTransform.x
-    elm._gsTransform.y = transform.y || elm._gsTransform.y
-    elm._gsTransform.rotation = transform.rotation || elm._gsTransform.rotation
-    elm._gsTransform.xOrigin = transform.xOrigin || elm._gsTransform.xOrigin
-    elm._gsTransform.yOrigin = transform.yOrigin || elm._gsTransform.yOrigin
+    elm._gsTransform.x = (transform.x === undefined ? elm._gsTransform.x : transform.x) || 0
+    elm._gsTransform.y = (transform.y === undefined ? elm._gsTransform.y : transform.y) || 0
+    elm._gsTransform.rotation = (transform.rotation === undefined ? elm._gsTransform.rotation : transform.rotation) || 0
+    elm._gsTransform.xOrigin = (transform.xOrigin === undefined ? elm._gsTransform.xOrigin : transform.xOrigin) || 0
+    elm._gsTransform.yOrigin = (transform.yOrigin === undefined ? elm._gsTransform.yOrigin : transform.yOrigin) || 0
     var transformObj = {}
     transformObj["translate"] = [elm._gsTransform.x || 0, elm._gsTransform.y || 0]
     transformObj["rotate"] = [elm._gsTransform.rotation || 0, elm._gsTransform.xOrigin || 0, elm._gsTransform.yOrigin || 0]

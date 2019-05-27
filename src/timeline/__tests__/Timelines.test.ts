@@ -13,6 +13,7 @@ let testSvgState = Map<string, SortedMap<any>>([['element1', new SortedMap({
             stroke: "black",
             "stroke-width": "2"
         },
+        transform: {},
         children: [],
         nodeName: 'circle'
     },

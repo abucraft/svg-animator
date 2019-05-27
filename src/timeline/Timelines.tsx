@@ -168,11 +168,11 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                             let rotationAttr = "rotate(deg,x,y)"
                             let fromValue = {
                                 rotation: fromRotation,
-                                //transformOrigin: `${fromXOrigin} ${fromYOrigin}`
+                                transformOrigin: `center center`
                             }
                             let toValue = {
                                 rotation: toRotation,
-                                //transformOrigin: `${toXOrigin} ${toYOrigin}`
+                                transformOrigin: `center center`
                             }
                             if (singleSvgAnimations.get(rotationAttr) === undefined)
                                 singleSvgAnimations = singleSvgAnimations.set(rotationAttr, Map());
