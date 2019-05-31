@@ -69,7 +69,9 @@ export class RotatePoint extends BasePoint {
     getClientCenter(): Point2D {
         let viewBox = this.svgRoot.viewBox
         let clientRect = this.svgRoot.getClientRects()[0]
-        if (viewBox.baseVal.width == 0 || viewBox.baseVal.height == 0) {
+        if (viewBox.baseVal === null || // Firefox unset viewBox baseVal is null  
+            viewBox.baseVal.width == 0 || 
+            viewBox.baseVal.height == 0) {
             return {
                 x: this.center.x + clientRect.left,
                 y: this.center.y + clientRect.top
@@ -106,7 +108,12 @@ export class RotatePoint extends BasePoint {
         let rad1 = Math.atan2(this.mousePosition.y - clientCenter.y, this.mousePosition.x - clientCenter.x)
         let rad2 = Math.atan2(event.clientY - clientCenter.y, event.clientX - clientCenter.x)
         let delta = rat2Degree(rad2 - rad1)
+        // Adjust the degree to avoid 0 degree - 360 degree
+        if (delta < -180) {
+            delta = 360 + delta
+        }
         let newDegree = this.degree + delta
+        // console.log("delta degree", delta)
         this.onRotate(newDegree)
         this.setDegree(newDegree)
         this.mousePosition = { x: event.x, y: event.y }

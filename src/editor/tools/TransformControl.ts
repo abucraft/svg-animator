@@ -73,6 +73,7 @@ export class TransformControl {
 
     onRotate = (degree: number) => {
         this.rotation = degree
+        // console.log("rotation", degree)
         this.selectSvgElements.forEach(elm => {
             let bbox = elm.getBBox()
             setTransform(elm, { rotation: degree, xOrigin: bbox.x + bbox.width / 2, yOrigin: bbox.y + bbox.height / 2 })

@@ -53,12 +53,12 @@ class SvgCanvas extends Component<SvgCanvasProps> {
                 let keys = svgState.keys()
                 let initState = svgState.get(keys[0]);
                 let svg = document.createElementNS("http://www.w3.org/2000/svg", initState.nodeName)
-                setInitGsTransform(svg)
                 let initAttributes = initState.attributes
                 for (let attr in initAttributes) {
                     svg.setAttribute(attr, initAttributes[attr])
                 }
-                this.svgRoot.current.appendChild(svg)
+                this.svgRoot.current.appendChild(svg);
+                setInitGsTransform(svg)
             }
         })
     }
