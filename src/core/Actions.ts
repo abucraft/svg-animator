@@ -23,6 +23,14 @@ declare global {
     }
 
     type SelectSvgElementAction = EditSvgAction
+
+    type ChangeEditModeAction = Action & {
+        value: SvgEditMode
+    }
+
+    type CreateSvgNodeAction = Action & {
+        value: SvgNode
+    }
 }
 
 export const ADD_ALERT = "ADD_ALERT"
@@ -107,5 +115,23 @@ export function moveTimeline(time: number): MoveTimelineAction {
     return {
         type: MOVE_TIMELINE,
         value: time
+    }
+}
+
+export const CHANGE_EDIT_MODE = "CHANGE_EDIT_MODE";
+
+export function changeEditMode(mode: SvgEditMode): ChangeEditModeAction {
+    return {
+        type: CHANGE_EDIT_MODE,
+        value: mode
+    }
+}
+
+export const CREATE_SVG_NODE = "CREATE_SVG_NODE";
+
+export function createSvgNode(node: SvgNode): CreateSvgNodeAction {
+    return {
+        type: CREATE_SVG_NODE,
+        value: node
     }
 }

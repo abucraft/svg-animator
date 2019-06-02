@@ -10,14 +10,13 @@ import { compose } from 'redux';
 
 import FrameContainer from './FrameContainer'
 import { moveTimeline } from '../core/Actions'
-import { SortedMap } from '../utils/SortedMap'
 import { SizedComponent } from '../utils/SizedComponent'
 import { SvgEditorContext } from '../app/SvgEditorContext';
 
 declare global {
 
     type TimelineStateProps = {
-        svgStates: Map<string, SortedMap<SvgNode>>
+        svgStates: SvgStateMap
         currentTime: number
         totalTime: number
     }
@@ -107,19 +106,20 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
         }
     }
 
-    static buildAnimationsFromState(svgStates: Map<string, SortedMap<SvgNode>>, existsAnimations: SvgAnimations, currentTime: number): SvgAnimations {
+    static buildAnimationsFromState(svgStates: SvgStateMap, existsAnimations: SvgAnimations, currentTime: number): SvgAnimations {
         // Recreate the animation frames every time, don't consider the time cost(it's very small currently)
         let svgAnimations: SvgAnimations = Map()
         svgStates.forEach((svgState, id) => {
-            let keys = svgState.keys()
-            let prevTime = parseFloat(keys[0])
+            let keys = svgState.keySeq().sort((v1, v2) => v1 - v2)
+            let prevTime = keys.get(0)
             let initState = svgState.get(prevTime)
             let stateStack: { [key: string]: TimeAndValue } = {}
             let transformStack: { [key: string]: TimeAndValue } = setUpInitTransformStack(initState.transform)
             let singleSvgAnimations = Map<string, Map<FrameKey, SvgAnimationFrame>>()
-            for (let i = 1; i < keys.length; i++) {
-                let curTime = parseFloat(keys[i])
+            for (let i = 1; i < keys.count(); i++) {
+                let curTime = keys.get(i)
                 let state = svgState.get(curTime)
+                // console.log("state in timeline", state)
                 if (state.transform) {
                     let transform = state.transform
                     if (transform.x || transform.y) {
@@ -274,6 +274,8 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
 
     componentDidUpdate(prevProps: TimelineProps) {
         if (prevProps !== this.props) {
+            // console.log("prev state in timelin", prevProps.svgStates)
+            // console.log("current state in timeline", this.props.svgStates)
             if (prevProps.svgStates !== this.props.svgStates) {
                 this.setState(Timelines.buildState(this.props, this.state))
             } else {

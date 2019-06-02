@@ -1,6 +1,6 @@
 import { Component, RefObject } from 'react'
 import { Subscription } from 'rxjs';
-import { updateSvgAttribute } from '../../core/Actions';
+import { updateSvgAttribute, selectSvgElement, deselectSvgElementAll } from '../../core/Actions';
 import { connect } from 'react-redux';
 import { domPaser, getAttributes, setAttributes, setTransform } from '../../utils/Utils';
 import { TransformControl } from './TransformControl';
@@ -12,6 +12,8 @@ type SelectedBoxProps = {
 
 type SelectedBoxActionProps = {
     onMoveSvgElement: (attributesMap: { [key: string]: any }) => void
+    onSelectSvgElement: (id: string) => void
+    onDeselectAll: () => void
 }
 
 type SelectedBoxPropsFromStore = {
@@ -32,16 +34,24 @@ function mapDispatchToProps(dispatch): SelectedBoxActionProps {
     return {
         onMoveSvgElement: (attributesMap: Map<string, SvgNode>) => {
             dispatch(updateSvgAttribute(attributesMap));
+        },
+        onSelectSvgElement: (id: string) => {
+            dispatch(selectSvgElement(id));
+        },
+        onDeselectAll: () => {
+            dispatch(deselectSvgElementAll())
         }
     }
 }
 
 export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
+    svgRoot: SVGSVGElement
     box: SVGRectElement
     bbox: Rect2D
     rotation: number = 0
     position: Point2D
     animationSubscription: Subscription
+    svgSubscription: Subscription
     transformControl: TransformControl
     static contextType = SvgEditorContext
     context: SvgEditorContextType
@@ -52,14 +62,6 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
         }
     }
 
-    static getDerivedStateFromProps(props: SelectedBoxProps) {
-        return {
-            selectedElements: props.selectedElementIds.map((id) => {
-                return document.getElementById(id) as any as SVGGraphicsElement
-            })
-        }
-    }
-
     updateTransformFromElements() {
         if (this.state.selectedElements.length === 1) {
             let gsTransform = this.state.selectedElements[0]._gsTransform
@@ -67,8 +69,19 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
         }
     }
 
-    componentDidUpdate() {
-        if (this.props.selectedElementIds.length == 0) {
+    componentDidUpdate(prevProps: SelectedBoxProps) {
+        console.log(this.props, prevProps)
+        if (this.props !== prevProps) {
+            this.setState({
+                selectedElements: this.props.selectedElementIds.map((id) => {
+                    return document.getElementById(id) as any as SVGGraphicsElement
+                })
+            }, () => {
+                this.transformControl.setSelectedElements(this.state.selectedElements)
+                this.updateAll()
+            })
+        }
+        if (this.state.selectedElements.length == 0) {
             this.hide()
         } else {
             this.show()
@@ -107,6 +120,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
 
     onMouseDown = (event: MouseEvent) => {
         event.stopPropagation()
+        this.context.eventLocked = true
         this.position = { x: event.clientX, y: event.clientY }
         this.bbox = this.box.getBBox()
         window.addEventListener('mousemove', this.onMouseMove)
@@ -126,6 +140,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
 
     onMouseUp = (event: MouseEvent) => {
         event.stopPropagation()
+        this.context.eventLocked = false
         window.removeEventListener('mousemove', this.onMouseMove)
         window.removeEventListener('mouseup', this.onMouseUp)
         let attributesMap = {}
@@ -139,16 +154,40 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
         event.stopPropagation()
     }
 
+    onSvgMouseDown = (event: MouseEvent) => {
+        if (event.target !== this.svgRoot && this.props.selectedElementIds.length === 0) {
+            console.log(event.srcElement)
+            let id = event.srcElement.id;
+            if (id.length > 0) {
+                event.stopPropagation()
+                this.props.onSelectSvgElement(id);
+                let selectedElements = [event.target as SVGGraphicsElement]
+                this.setState({ selectedElements: selectedElements }, () => {
+                    this.onMouseDown(event)
+                })
+            }
+        }
+    }
+
+    onSvgMouseup = (event: MouseEvent) => {
+        if (!this.context.eventLocked && event.srcElement === this.svgRoot) {
+            this.props.onDeselectAll()
+        }
+    }
+
     componentDidMount() {
-        let bbox = this.getBBox()
-        this.bbox = bbox
-        this.box = domPaser.parseFromString(`<rect xmlns="http://www.w3.org/2000/svg" style="cursor:move;" x="0" y="0" width="${bbox.width}" height="${bbox.height}" stroke="black" stroke-width="0.5px" fill="transparent"/>`, "image/svg+xml").firstChild as any as SVGRectElement
+        this.box = domPaser.parseFromString(`<rect xmlns="http://www.w3.org/2000/svg" style="cursor:move;" x="0" y="0" width="100" height="100" stroke="black" stroke-width="0.5px" fill="transparent"/>`, "image/svg+xml").firstChild as any as SVGRectElement
         this.props.svgRoot.appendChild(this.box)
         this.box.addEventListener('mousedown', this.onMouseDown)
         this.box.addEventListener('click', this.onClick)
+        this.svgSubscription = this.context.svgCreatedSignal.subscribe(svg => {
+            this.svgRoot = svg
+            this.svgRoot.addEventListener("mousedown", this.onSvgMouseDown)
+            this.svgRoot.addEventListener("mouseup", this.onSvgMouseup)
+        })
         this.animationSubscription = this.context.animationSignal.subscribe(this.updateAll)
-        this.transformControl = new TransformControl(this.props.svgRoot, this.context, this.state.selectedElements, this.updateAll)
-        this.updateAll()
+        this.transformControl = new TransformControl(this.props.svgRoot, this.context, this.updateAll)
+        this.componentDidUpdate(null)
     }
 
     updateBox = () => {
@@ -176,7 +215,10 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
         this.hide();
         window.removeEventListener('mousemove', this.onMouseMove)
         window.removeEventListener('mouseup', this.onMouseUp)
+        this.svgRoot.removeEventListener("mousedown", this.onSvgMouseDown)
+        this.svgRoot.removeEventListener("mouseup", this.onSvgMouseup)
         this.animationSubscription.unsubscribe()
+        this.svgSubscription.unsubscribe()
         this.transformControl.componentWillUnmount()
     }
 

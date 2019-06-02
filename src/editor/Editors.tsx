@@ -27,8 +27,9 @@ class Editors extends Component<EditorsFullProps> {
     render() {
         switch (this.props.editMode) {
             case 'select':
-            default:
                 return (<SelectedBox svgRoot={this.props.svgRoot} />)
+            default:
+                return null
         }
     }
 

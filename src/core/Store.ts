@@ -1,16 +1,16 @@
 import { RefObject } from 'react'
 import { Subject, BehaviorSubject } from 'rxjs'
 import { createStore, combineReducers, applyMiddleware, Store } from 'redux'
-import { EDIT_SVG_TEXT, MOVE_TIMELINE, ADD_ALERT, CLEAR_ALERT, addAlert, SELECT_SVG_ELEMENT, DESELECT_SVG_ELEMENT_ALL, UPDATE_SVG_ATTRIBUTE } from './Actions'
+import { EDIT_SVG_TEXT, MOVE_TIMELINE, ADD_ALERT, CLEAR_ALERT, addAlert, SELECT_SVG_ELEMENT, DESELECT_SVG_ELEMENT_ALL, UPDATE_SVG_ATTRIBUTE, CHANGE_EDIT_MODE, CREATE_SVG_NODE } from './Actions'
 import { svgToJson, initialSvg, nodeToJson, copySvgFields, compareSvgFields, svgJsonToText } from './SVGJson'
-import { SortedMap } from '../utils/SortedMap'
 import { Map } from 'immutable'
 import { onErrorResumeNext } from 'rxjs';
 declare global {
-    type SvgEditMode = 'select' | 'path-editing'
+    type SvgEditMode = 'select' | 'path-editing' | 'creating'
+    type SvgStateMap = Map<string, Map<number, SvgNode>>
     interface SvgState {
         editMode: SvgEditMode,
-        svgStates: Map<string, SortedMap<SvgNode>>,
+        svgStates: SvgStateMap,
         selectedElementIds: Array<string>,
         currentTime: number,
         totalTime: number,
@@ -26,14 +26,18 @@ declare global {
 }
 
 let elementIncreamentalId = 1;
+function getElementId() {
+    return `element${elementIncreamentalId}`
+}
 
 const initSvgJson = svgToJson(initialSvg)
-initSvgJson.attributes.id = `element${elementIncreamentalId}`
+
+initSvgJson.attributes.id = getElementId()
 
 const initialState: SvgState = {
     editMode: 'select',
-    svgStates: Map([[`element${elementIncreamentalId}`, new SortedMap<SvgNode>({ 0: initSvgJson })]]),
-    selectedElementIds: [`element${elementIncreamentalId}`],
+    svgStates: Map([[getElementId(), Map([[0, initSvgJson]])]]),
+    selectedElementIds: [getElementId()],
     currentTime: 0,
     totalTime: 3,
     currentSvgText: initialSvg,
@@ -63,7 +67,8 @@ function updateSvgAttribute(state: SvgState, action: UpdateSvgAttributeAction): 
     let svgStates = state.svgStates;
     Map(attributesMap).forEach((v, id) => {
         let svgState = svgStates.get(id);
-        let nowState: SvgNode = svgState.get(currentTime) || { attributes: {}, transform: {} };
+        let oldAttrAndTransform = svgState.get(currentTime)
+        let nowState: SvgNode = oldAttrAndTransform && { attributes: oldAttrAndTransform.attributes, transform: oldAttrAndTransform.transform } || { attributes: {}, transform: {} };
         nowState.attributes = { ...nowState.attributes, ...v.attributes };
         nowState.transform = { ...nowState.transform, ...v.transform }
         let newTimeStates = svgState.set(currentTime, nowState);
@@ -108,6 +113,17 @@ function moveTimeline(state: SvgState, action): SvgState {
     return { ...state, currentTime: action.value, currentSvgText: text }
 }
 
+function svgEditMode(state: SvgState, action: ChangeEditModeAction): SvgState {
+    return { ...state, editMode: action.value }
+}
+
+function handleCreateSvgNode(state: SvgState, action: CreateSvgNodeAction): SvgState {
+    elementIncreamentalId += 1
+    action.value.attributes.id = getElementId()
+    let newMap = state.svgStates.set(getElementId(), Map([[0, action.value]]))
+    return { ...state, svgStates: newMap }
+}
+
 const errorAlerter = store => next => action => {
     try {
         return next(action)
@@ -125,7 +141,9 @@ const store: Store = createStore(combineReducers({
         [MOVE_TIMELINE, moveTimeline],
         [SELECT_SVG_ELEMENT, selectSvgElement],
         [DESELECT_SVG_ELEMENT_ALL, deselectSvgElementAll],
-        [UPDATE_SVG_ATTRIBUTE, updateSvgAttribute]
+        [UPDATE_SVG_ATTRIBUTE, updateSvgAttribute],
+        [CHANGE_EDIT_MODE, svgEditMode],
+        [CREATE_SVG_NODE, handleCreateSvgNode]
     ]), initialState)
 }), composeWithDevTools(applyMiddleware(errorAlerter)));
 

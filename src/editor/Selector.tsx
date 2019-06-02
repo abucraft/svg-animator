@@ -5,28 +5,27 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMousePointer } from '@fortawesome/free-solid-svg-icons/faMousePointer'
 import { Tooltip } from 'antd'
 import * as classNames from 'classnames'
-import Editors from './Editors'
-import { selectSvgElement, deselectSvgElementAll } from '../core/Actions';
+import { selectSvgElement, deselectSvgElementAll, changeEditMode } from '../core/Actions';
 import { SvgEditorContext } from '../app/SvgEditorContext';
 
 declare global {
     interface ToolBaseProps {
         svgRoot: SVGSVGElement
         active: boolean,
-        onSelect: (tool: any) => void
+        onSelect: (name: string) => void
     }
 
     interface SelectorDispatcherProps {
-        onSelectSvgElement: (id: string) => void
         onDeselectAll: () => void
+        changeToSelectMode: () => void
     }
     type SelectorProps = ToolBaseProps & SelectorDispatcherProps
 }
 
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps(dispatch): SelectorDispatcherProps {
     return {
-        onSelectSvgElement: (id: string) => {
-            dispatch(selectSvgElement(id));
+        changeToSelectMode: () => {
+            dispatch(changeEditMode("select"))
         },
         onDeselectAll: () => {
             dispatch(deselectSvgElementAll())
@@ -34,55 +33,32 @@ function mapDispatchToProps(dispatch) {
     }
 }
 
+export const SelectorName = "Selector"
+
 export class Selector extends Component<SelectorProps> {
-    static contextType = SvgEditorContext
-    context: SvgEditorContextType
     constructor(props) {
         super(props)
     }
 
+    componentDidUpdate(prevProps: SelectorProps) {
+        if (this.props.active !== prevProps.active) {
+            if (!this.props.active) {
+                this.props.onDeselectAll()
+            } else {
+                this.props.changeToSelectMode()
+            }
+        }
+    }
+
     onClick = () => {
-        this.props.onSelect(Selector)
-    }
-
-    onSvgClick = (event: MouseEvent) => {
-        if(this.context.eventLocked) return;
-        console.log(event.srcElement);
-        let id = event.srcElement.id;
-        if (id.length > 0) {
-            this.props.onSelectSvgElement(id);
-            event.stopPropagation();
-        } else {
-            console.log('deselect all');
-            this.props.onDeselectAll();
-        }
-    }
-
-    componentDidMount() {
-        if (this.props.active) {
-            this.props.svgRoot.addEventListener('click', this.onSvgClick);
-        }
-    }
-
-    componentWillUnmount() {
-        this.props.svgRoot.removeEventListener('click', this.onSvgClick)
-    }
-
-    shouldComponentUpdate(nextProps) {
-        if (nextProps.active) {
-            nextProps.svgRoot.addEventListener('click', this.onSvgClick);
-        } else {
-            nextProps.svgRoot.removeEventListener('click', this.onSvgClick);
-        }
-        return true;
+        this.props.onSelect(SelectorName)
     }
 
     render() {
         return (
-            <Tooltip title="selection tool" placement="right">
+            <Tooltip title="Select Element" placement="right">
                 <div className={classNames("tool-button", { 'active': this.props.active })} onClick={this.onClick}>
                     <FontAwesomeIcon size="lg" icon={faMousePointer} />
-                    <Editors svgRoot={this.props.svgRoot} />
                 </div>
             </Tooltip>)
     }

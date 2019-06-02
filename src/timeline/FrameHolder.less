@@ -1,21 +1,23 @@
 @frame-height: 20px;
 
-.frame-meta{
-    height:@frame-height;
+.frame-meta {
+    height: @frame-height;
+    user-select: none;
+    -moz-user-select: none;
     text-align: center;
     font-weight: bold;
 }
 
-.frame-wrapper{
+.frame-wrapper {
     display: flex;
     height: @frame-height;
 }
 
-.frame-holder{
+.frame-holder {
     position: absolute;
     height: @frame-height;
     border-width: 1px 1px 0 0;
-    border-style: solid; 
+    border-style: solid;
     border-color: #333333;
     background-color: chocolate;
 }

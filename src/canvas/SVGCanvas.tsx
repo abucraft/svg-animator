@@ -3,14 +3,13 @@ import * as React from 'react'
 import { compose } from 'redux'
 import { connect } from 'react-redux'
 import { SizedComponent } from '../utils/SizedComponent'
-import { SortedMap } from '../utils/SortedMap'
 import { Map } from 'immutable'
 import { TweenMax } from 'gsap/umd/TweenMax'
 import { SvgEditorContext } from '../app/SvgEditorContext';
 
 declare global {
     type SvgCanvasStateProps = {
-        svgStates: Map<string, SortedMap<any>>
+        svgStates: SvgStateMap
         currentTime: number
     }
     type SvgCanvasProps = SvgCanvasStateProps & {
@@ -28,7 +27,7 @@ function mapStateToProps(state: AppState): SvgCanvasStateProps {
 }
 
 function setInitGsTransform(elm) {
-    TweenMax.fromTo(elm, 1, {x:0},{x:100}).pause()
+    TweenMax.fromTo(elm, 1, { x: 0 }, { x: 100 }).pause()
 }
 
 class SvgCanvas extends Component<SvgCanvasProps> {
@@ -41,7 +40,8 @@ class SvgCanvas extends Component<SvgCanvasProps> {
         this.svgRoot = React.createRef();
     }
 
-    updateSvgElements(oldSvgStates, newSvgStates) {
+    updateSvgElements(oldSvgStates: SvgStateMap, newSvgStates: SvgStateMap) {
+        console.log("update svg element")
         oldSvgStates.forEach((v, id) => {
             if (newSvgStates.get(id) === undefined) {
                 let toRemove = document.getElementById(id);
@@ -50,8 +50,8 @@ class SvgCanvas extends Component<SvgCanvasProps> {
         });
         newSvgStates.forEach((svgState, id) => {
             if (oldSvgStates.get(id) === undefined) {
-                let keys = svgState.keys()
-                let initState = svgState.get(keys[0]);
+                let keys = svgState.keySeq().sort((v1, v2) => v1 - v2)
+                let initState = svgState.get(keys.get(0));
                 let svg = document.createElementNS("http://www.w3.org/2000/svg", initState.nodeName)
                 let initAttributes = initState.attributes
                 for (let attr in initAttributes) {

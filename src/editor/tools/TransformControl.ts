@@ -18,8 +18,7 @@ export class TransformControl {
     rotation: number
     selectSvgElements: SVGGraphicsElement[]
     onResize: () => void
-    constructor(svgRoot: SVGSVGElement, svgEditorContext: SvgEditorContextType, selectedElements: SVGGraphicsElement[], onResize: () => void) {
-        this.selectSvgElements = selectedElements
+    constructor(svgRoot: SVGSVGElement, svgEditorContext: SvgEditorContextType, onResize: () => void) {
         this.rotation = 0
         this.onResize = onResize
         this.nwpoint = new RectDragPoint(svgRoot, this.onResizeElement('nw'), this.onResizeEnd, 'nw')
@@ -30,6 +29,10 @@ export class TransformControl {
         this.neRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, this.onRotateEnd, 'ne')
         this.swRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, this.onRotateEnd, 'sw')
         this.seRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, this.onRotateEnd, 'se')
+    }
+
+    setSelectedElements(selectedElements: SVGGraphicsElement[]) {
+        this.selectSvgElements = selectedElements
     }
 
     onResizeElement = (location: RotateLocation) => (p: DeltaPoint2D) => {

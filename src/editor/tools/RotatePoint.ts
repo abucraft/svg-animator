@@ -70,7 +70,7 @@ export class RotatePoint extends BasePoint {
         let viewBox = this.svgRoot.viewBox
         let clientRect = this.svgRoot.getClientRects()[0]
         if (viewBox.baseVal === null || // Firefox unset viewBox baseVal is null  
-            viewBox.baseVal.width == 0 || 
+            viewBox.baseVal.width == 0 ||
             viewBox.baseVal.height == 0) {
             return {
                 x: this.center.x + clientRect.left,
@@ -111,6 +111,9 @@ export class RotatePoint extends BasePoint {
         // Adjust the degree to avoid 0 degree - 360 degree
         if (delta < -180) {
             delta = 360 + delta
+        }
+        if (delta > 180) {
+            delta = 360 - delta
         }
         let newDegree = this.degree + delta
         // console.log("delta degree", delta)
