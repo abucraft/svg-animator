@@ -7,6 +7,7 @@ import { OrderedMap } from 'immutable';
 import Editors from './Editors'
 import { RectCreatorName, ConnectedRectCreator } from './RectCreator';
 import { Subscription } from 'rxjs';
+import { EllipseCreatorName, ConnectedEllipseCreator } from './EllipseCreator';
 
 declare global {
     interface ToolBarState {
@@ -30,7 +31,8 @@ export default class ToolBar extends Component<any, ToolBarState> {
             activeToolName: SelectorName,
             tools: OrderedMap({
                 [SelectorName]: ConnectedSelector,
-                [RectCreatorName]: ConnectedRectCreator
+                [RectCreatorName]: ConnectedRectCreator,
+                [EllipseCreatorName]: ConnectedEllipseCreator
             })
         }
     }

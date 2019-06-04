@@ -48,11 +48,14 @@ export abstract class BasePoint {
 abstract class BaseDragPoint extends BasePoint {
     onMove: (p: DeltaPoint2D) => void
     onMoveEnd: () => void
+    svgEditorContext: SvgEditorContextType
     constructor(svgRoot: SVGSVGElement,
+        svgEditorContext: SvgEditorContextType,
         onMove: (p: DeltaPoint2D) => void,
         onMoveEnd: () => void,
         location: RotateLocation) {
         super(svgRoot, location)
+        this.svgEditorContext = svgEditorContext
         this.point.addEventListener('mousedown', this.onMouseDown)
         this.point.addEventListener('click', this.onClick)
         this.onMove = onMove
@@ -67,6 +70,7 @@ abstract class BaseDragPoint extends BasePoint {
 
     onMouseDown = (event: MouseEvent) => {
         event.stopPropagation()
+        this.svgEditorContext.eventLocked = true
         this.mousePosition = { x: event.clientX, y: event.clientY }
         this.pointPosition = { x: parseFloat(this.point.getAttribute('cx')), y: parseFloat(this.point.getAttribute('cy')) }
         window.addEventListener('mousemove', this.onMouseMove)
@@ -84,6 +88,7 @@ abstract class BaseDragPoint extends BasePoint {
 
     onMouseUp = (event: MouseEvent) => {
         event.stopPropagation()
+        this.svgEditorContext.eventLocked = false
         window.removeEventListener('mousemove', this.onMouseMove)
         window.removeEventListener('mouseup', this.onMouseUp)
         this.onMoveEnd()

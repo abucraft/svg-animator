@@ -5,14 +5,14 @@ import { changeEditMode, createSvgNode } from '../core/Actions';
 import { connect } from 'react-redux';
 import { SvgEditorContext } from '../app/SvgEditorContext';
 
-type RectCreatorDispathProps = {
+export type CreatorDispathProps = {
     onCreateSvgElement: (obj: SvgNode) => void
     changeToCreateMode: () => void
 }
 
-type RectCreatorProps = ToolBaseProps & RectCreatorDispathProps
+export type CreatorProps = ToolBaseProps & CreatorDispathProps
 
-function mapDispatch(dispatch): RectCreatorDispathProps {
+export function mapDispatchForCreator(dispatch): CreatorDispathProps {
     return {
         onCreateSvgElement: (obj: SvgNode) => {
             dispatch(createSvgNode(obj))
@@ -25,8 +25,8 @@ function mapDispatch(dispatch): RectCreatorDispathProps {
 
 export const RectCreatorName = "RectCreator"
 
-export class RectCreator extends Component<RectCreatorProps> {
-    componentDidUpdate(prevProps: RectCreatorProps) {
+class RectCreator extends Component<CreatorProps> {
+    componentDidUpdate(prevProps: CreatorProps) {
         if (this.props.active !== prevProps.active) {
             if (this.props.active) {
                 this.props.changeToCreateMode()
@@ -69,4 +69,4 @@ export class RectCreator extends Component<RectCreatorProps> {
     }
 }
 
-export const ConnectedRectCreator = connect(null, mapDispatch)(RectCreator)
+export const ConnectedRectCreator = connect(null, mapDispatchForCreator)(RectCreator)

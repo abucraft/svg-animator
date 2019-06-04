@@ -70,7 +70,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     }
 
     componentDidUpdate(prevProps: SelectedBoxProps) {
-        console.log(this.props, prevProps)
+        // console.log(this.props, prevProps)
         if (this.props !== prevProps) {
             this.setState({
                 selectedElements: this.props.selectedElementIds.map((id) => {
@@ -155,7 +155,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     }
 
     onSvgMouseDown = (event: MouseEvent) => {
-        if (event.target !== this.svgRoot && this.props.selectedElementIds.length === 0) {
+        if (event.target !== this.svgRoot) {
             console.log(event.srcElement)
             let id = event.srcElement.id;
             if (id.length > 0) {

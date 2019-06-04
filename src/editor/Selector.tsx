@@ -35,7 +35,7 @@ function mapDispatchToProps(dispatch): SelectorDispatcherProps {
 
 export const SelectorName = "Selector"
 
-export class Selector extends Component<SelectorProps> {
+class Selector extends Component<SelectorProps> {
     constructor(props) {
         super(props)
     }

@@ -21,10 +21,10 @@ export class TransformControl {
     constructor(svgRoot: SVGSVGElement, svgEditorContext: SvgEditorContextType, onResize: () => void) {
         this.rotation = 0
         this.onResize = onResize
-        this.nwpoint = new RectDragPoint(svgRoot, this.onResizeElement('nw'), this.onResizeEnd, 'nw')
-        this.nepoint = new RectDragPoint(svgRoot, this.onResizeElement('ne'), this.onResizeEnd, 'ne')
-        this.swpoint = new RectDragPoint(svgRoot, this.onResizeElement('sw'), this.onResizeEnd, 'sw')
-        this.sepoint = new RectDragPoint(svgRoot, this.onResizeElement('se'), this.onResizeEnd, 'se')
+        this.nwpoint = new RectDragPoint(svgRoot, svgEditorContext, this.onResizeElement('nw'), this.onResizeEnd, 'nw')
+        this.nepoint = new RectDragPoint(svgRoot, svgEditorContext, this.onResizeElement('ne'), this.onResizeEnd, 'ne')
+        this.swpoint = new RectDragPoint(svgRoot, svgEditorContext, this.onResizeElement('sw'), this.onResizeEnd, 'sw')
+        this.sepoint = new RectDragPoint(svgRoot, svgEditorContext, this.onResizeElement('se'), this.onResizeEnd, 'se')
         this.nwRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, this.onRotateEnd, 'nw')
         this.neRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, this.onRotateEnd, 'ne')
         this.swRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, this.onRotateEnd, 'sw')
@@ -70,6 +70,36 @@ export class TransformControl {
                 let transformY = elm._gsTransform.y || 0
                 setTransform(elm, { x: transformX + p.dx / 2, y: transformY + p.dy / 2, rotation: this.rotation, xOrigin: bbox.x + bbox.width / 2, yOrigin: bbox.y + bbox.height / 2 })
             }
+            if (elm.nodeName == "rect") {
+                let { x, y, width, height } = getAttributes(elm, { x: 'number', y: 'number', width: 'number', height: 'number' })
+                switch (location) {
+                    case 'nw':
+                        x += dx
+                        y += dy
+                        width -= dx
+                        height -= dy
+                        break;
+                    case 'ne':
+                        width = width + dx
+                        y = y + dy
+                        height -= dy
+                        break;
+                    case "sw":
+                        x = x + dx
+                        width -= dx
+                        height = height + dy
+                        break;
+                    case 'se':
+                        width += dx
+                        height += dy
+                        break;
+                }
+                setAttributes(elm, { x, y, height, width })
+                let bbox = elm.getBBox()
+                let transformX = elm._gsTransform.x || 0
+                let transformY = elm._gsTransform.y || 0
+                setTransform(elm, { x: transformX + (p.dx - dx) / 2, y: transformY + (p.dy - dy) / 2, rotation: this.rotation, xOrigin: bbox.x + bbox.width / 2, yOrigin: bbox.y + bbox.height / 2 })
+            }
         })
         this.onResize()
     }
@@ -107,16 +137,23 @@ export class TransformControl {
             if (elm.nodeName === 'ellipse') {
                 let attributes = getAttributes(elm, { rx: 'number', ry: 'number' })
                 attributesMap[elm.id] = {
-                    attributes,
-                    transform: {
-                        x: elm._gsTransform.x,
-                        y: elm._gsTransform.y,
-                        rotation: elm._gsTransform.rotation,
-                        xOrigin: elm._gsTransform.xOrigin,
-                        yOrigin: elm._gsTransform.yOrigin
-                    }
+                    attributes
                 }
             }
+            if (elm.nodeName === 'rect') {
+                let attributes = getAttributes(elm, { x: 'number', y: 'number', width: 'number', height: 'number' })
+                attributesMap[elm.id] = {
+                    attributes
+                }
+            }
+            attributesMap[elm.id].transform = {
+                x: elm._gsTransform.x,
+                y: elm._gsTransform.y,
+                rotation: elm._gsTransform.rotation,
+                xOrigin: elm._gsTransform.xOrigin,
+                yOrigin: elm._gsTransform.yOrigin
+            }
+
         })
         dispatch(updateSvgAttribute(attributesMap))
     }
@@ -139,6 +176,7 @@ export class TransformControl {
 
     setTransform(bboxRaw: Rect2D, rotation: number) {
         this.bboxRaw = bboxRaw
+        this.rotation = rotation
         let { center, nwPosition, nePosition, swPosition, sePosition } = this.getLocations()
         this.nwpoint.setPosition(nwPosition, center, rotation)
         this.nepoint.setPosition(nePosition, center, rotation)
