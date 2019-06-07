@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "A simple svg animation editor",
   "scripts": {
-    "start": "webpack-dev-server --port 9000",
+    "start": "webpack-dev-server --port 2333",
     "build": "webpack --config webpack.config.js",
     "build.prod": "webpack --config webpack.config.js -p",
     "test": "node scripts/test.js"

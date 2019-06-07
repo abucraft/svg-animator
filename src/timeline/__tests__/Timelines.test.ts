@@ -1,29 +1,28 @@
 import { Timelines } from '../Timelines'
 import { Map, List } from 'immutable'
-import { SortedMap } from '../../utils/SortedMap';
 
-let testSvgState = Map<string, SortedMap<any>>([['element1', new SortedMap({
-    "0": {
-        attributes: {
-            cx: "100",
-            cy: "50",
-            fill: "red",
-            id: "element1",
-            r: "40",
-            stroke: "black",
-            "stroke-width": "2"
-        },
-        transform: {},
-        children: [],
-        nodeName: 'circle'
-    },
-    "1": {
+let testSvgState = Map<string, Map<number, any>>([['element1', Map([
+    [0, {
+            attributes: {
+                cx: "100",
+                cy: "50",
+                fill: "red",
+                id: "element1",
+                r: "40",
+                stroke: "black",
+                "stroke-width": "2"
+            },
+            transform: {},
+            children: [],
+            nodeName: 'circle'
+        }],
+    [1, {
         attributes: {
             cx: "220",
             cy: "367"
         }
     }
-})]])
+    ]])]])
 let expectedSvgAnimations = Map({
     'element1': Map({
         "cx": Map<FrameKey, SvgAnimationFrame>([[List([0, 1]), { value: { from: '100', to: '220' } }]]),
