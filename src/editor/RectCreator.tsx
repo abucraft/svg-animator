@@ -50,7 +50,10 @@ class RectCreator extends Component<CreatorProps> {
                 width: 100,
                 height: 100
             },
-            transform: {},
+            transform: {
+                xOrigin: 50,
+                yOrigin: 50
+            },
         })
     }
 

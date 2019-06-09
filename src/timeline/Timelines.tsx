@@ -35,8 +35,12 @@ declare global {
     type FrameKey = List<number>
 
     type SvgAnimationFrame = {
+        type?: "rotation"
         value: FrameValue
         tweenLite: TweenMax
+        originTween?: TweenMax
+        helper?: object
+        target?: any
     }
 
     // {id: {attribute: { frame: value }}}
@@ -73,6 +77,14 @@ function createTweenMaxFrame(target, duration, attr, frameValue: FrameValue, tar
 
 function createTweenMaxTransformFrame(target, duration, fromTransform: Transform, toTransform: Transform, targetTime: number) {
     return TweenMax.fromTo(target, duration, fromTransform, toTransform).pause().seek(targetTime)
+}
+
+function createTweenMaxTransformOriginFrame(helper, target, duration, fromTransform: Transform, toTransform: Transform, targetTime: number) {
+    let tween = TweenMax.fromTo(helper, duration, fromTransform, toTransform).pause().seek(targetTime)
+    Object.keys(fromTransform).forEach((key) => {
+        target._gsTransform[key] = helper[key]
+    })
+    return tween
 }
 
 function setUpInitTransformStack(initTransform): { [key: string]: TimeAndValue } {
@@ -166,6 +178,7 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                         transformStack["yOrigin"] = { time: curTime, value: toYOrigin }
                         if (toRotation !== fromRotation || toXOrigin !== fromXOrigin || toYOrigin !== fromYOrigin) {
                             let rotationAttr = "rotate(deg,x,y)"
+                            let helper = {}
                             let fromValue = {
                                 rotation: fromRotation,
                                 xOrigin: fromXOrigin,
@@ -176,14 +189,19 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                                 xOrigin: toXOrigin,
                                 yOrigin: toYOrigin
                             }
+                            let target = document.getElementById(initState.attributes.id)
                             if (singleSvgAnimations.get(rotationAttr) === undefined)
                                 singleSvgAnimations = singleSvgAnimations.set(rotationAttr, Map());
                             singleSvgAnimations = singleSvgAnimations.setIn([rotationAttr, List([startTime, curTime])], {
+                                type: "rotation",
                                 value: {
                                     from: fromValue,
                                     to: toValue
                                 },
-                                tweenLite: createTweenMaxTransformFrame(document.getElementById(initState.attributes.id), curTime - startTime, fromValue, toValue, currentTime - startTime)
+                                helper: helper,
+                                target: target,
+                                originTween: createTweenMaxTransformOriginFrame(helper, target, curTime - startTime, { xOrigin: fromXOrigin, yOrigin: fromYOrigin }, { xOrigin: toXOrigin, yOrigin: toYOrigin }, currentTime - startTime),
+                                tweenLite: createTweenMaxTransformFrame(target, curTime - startTime, fromValue, toValue, currentTime - startTime)
                             })
                         }
                     }
@@ -244,6 +262,12 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                 attrAnimations.forEach((animation, frameKey) => {
                     let timegap = time - frameKey.get(0)
                     if (timegap > 0) {
+                        if (animation.originTween) {
+                            animation.originTween.seek(timegap);
+                            Object.keys(animation.helper).forEach((key) => {
+                                animation.target._gsTransform[key] = animation.helper[key]
+                            })
+                        }
                         animation.tweenLite.seek(timegap);
                     }
                 })
