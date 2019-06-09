@@ -7,14 +7,21 @@ cache:
   directories:
     - $HOME/.npm
 
-script:
-  - npm test
-  - npm run build
+stages:
+  - test
+  - name: deploy
+    if: env(BUILD_TYPE) = release
 
-deploy:
-  provider: pages
-  skip_cleanup: true
-  github_token: $GITHUB_TOKEN
-  local_dir: dist
-  on:
-    branch: master
+jobs:
+  include:
+  - stage: test
+    script: npm test
+  - stage: deploy
+    script: npm run build
+    deploy:
+      provider: pages
+      skip_cleanup: true
+      github_token: $GITHUB_TOKEN
+      local_dir: dist
+      on:
+        branch: master
