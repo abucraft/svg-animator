@@ -4,6 +4,7 @@ import * as classNames from 'classnames'
 import { changeEditMode, createSvgNode } from '../core/Actions';
 import { connect } from 'react-redux';
 import { SvgEditorContext } from '../app/SvgEditorContext';
+import { clientPoint2ViewportPoint } from './Utils';
 
 export type CreatorDispathProps = {
     onCreateSvgElement: (obj: SvgNode) => void
@@ -41,18 +42,22 @@ class RectCreator extends Component<CreatorProps> {
         this.props.svgRoot.removeEventListener("click", this.onSvgClick)
     }
 
-    onSvgClick = () => {
+    onSvgClick = (event: MouseEvent) => {
+        let mousePoint = { x: event.clientX, y: event.clientY }
+        let svgPoint = clientPoint2ViewportPoint(this.props.svgRoot, mousePoint)
         this.props.onCreateSvgElement({
             nodeName: 'rect',
             attributes: {
-                x: 0,
-                y: 0,
+                x: -50,
+                y: -50,
                 width: 100,
                 height: 100
             },
             transform: {
-                xOrigin: 50,
-                yOrigin: 50
+                x: svgPoint.x,
+                y: svgPoint.y,
+                xOrigin: 0,
+                yOrigin: 0
             },
         })
     }

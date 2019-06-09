@@ -16,11 +16,11 @@ declare global {
         nodeName?: string
         attributes: { [key: string]: any },
         transform: Transform
-        children?: [SvgNode]
+        children?: SvgNode[]
     }
 }
 export function nodeToJson(node: Element): SvgNode {
-    let svgjson = { attributes: {}, transform: {} }
+    let svgjson: SvgNode = { attributes: {}, transform: {} }
     svgjson['nodeName'] = node.nodeName
     if (node.attributes) {
         svgjson["attributes"] = {}
@@ -32,6 +32,10 @@ export function nodeToJson(node: Element): SvgNode {
         let children = node.children
         for (let i = 0; i < children.length; i++) {
             svgjson['children'].push(nodeToJson(children[i]))
+        }
+        if (svgjson["nodeName"] === "ellipse") {
+            svgjson.transform.xOrigin = parseFloat(node.getAttribute("cx"))
+            svgjson.transform.yOrigin = parseFloat(node.getAttribute("cy"))
         }
     }
     return svgjson

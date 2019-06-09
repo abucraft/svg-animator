@@ -6,6 +6,7 @@ import { SizedComponent } from '../utils/SizedComponent'
 import { Map } from 'immutable'
 import { TweenMax } from 'gsap/umd/TweenMax'
 import { SvgEditorContext } from '../app/SvgEditorContext';
+import { setTransform } from '../utils/Utils';
 
 declare global {
     type SvgCanvasStateProps = {
@@ -59,6 +60,7 @@ class SvgCanvas extends Component<SvgCanvasProps> {
                 }
                 this.svgRoot.current.appendChild(svg);
                 setInitGsTransform(svg)
+                setTransform(svg, initState.transform)
             }
         })
     }
