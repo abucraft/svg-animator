@@ -49,6 +49,8 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     box: SVGRectElement
     bbox: Rect2D
     rotation: number = 0
+    // For debounce
+    mouseUpAndMoveLocked = false
     position: Point2D
     animationSubscription: Subscription
     svgSubscription: Subscription
@@ -128,6 +130,8 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     }
 
     onMouseMove = (event: MouseEvent) => {
+        if (this.mouseUpAndMoveLocked)
+            return
         event.stopPropagation()
         let dx = event.clientX - this.position.x
         let dy = event.clientY - this.position.y
@@ -143,6 +147,8 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
         this.context.eventLocked = false
         window.removeEventListener('mousemove', this.onMouseMove)
         window.removeEventListener('mouseup', this.onMouseUp)
+        if (this.mouseUpAndMoveLocked)
+            return
         let attributesMap = {}
         this.state.selectedElements.forEach(elem => {
             attributesMap[elem.id] = { transform: elem._gsTransform }
@@ -156,12 +162,14 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
 
     onSvgMouseDown = (event: MouseEvent) => {
         if (event.target !== this.svgRoot) {
-            console.log(event.srcElement)
             let id = event.srcElement.id;
             if (id.length > 0) {
                 event.stopPropagation()
                 this.props.onSelectSvgElement(id);
                 let selectedElements = [event.target as SVGGraphicsElement]
+                // For debounce. When click in a short time, we don't consider it as move
+                this.mouseUpAndMoveLocked = true
+                setTimeout(() => this.mouseUpAndMoveLocked = false, 200)
                 this.setState({ selectedElements: selectedElements }, () => {
                     this.onMouseDown(event)
                 })
