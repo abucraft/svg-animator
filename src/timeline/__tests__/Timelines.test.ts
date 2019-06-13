@@ -1,21 +1,21 @@
-import { Timelines } from '../Timelines'
+import { Timelines, TweenMaxAnimationFactory } from '../Timelines'
 import { Map, List } from 'immutable'
 
 let testSvgState = Map<string, Map<number, any>>([['element1', Map([
     [0, {
-            attributes: {
-                cx: "100",
-                cy: "50",
-                fill: "red",
-                id: "element1",
-                r: "40",
-                stroke: "black",
-                "stroke-width": "2"
-            },
-            transform: {},
-            children: [],
-            nodeName: 'circle'
-        }],
+        attributes: {
+            cx: "100",
+            cy: "50",
+            fill: "red",
+            id: "element1",
+            r: "40",
+            stroke: "black",
+            "stroke-width": "2"
+        },
+        transform: {},
+        children: [],
+        nodeName: 'circle'
+    }],
     [1, {
         attributes: {
             cx: "220",
@@ -77,6 +77,6 @@ function svgAnimationEquals(source: SvgAnimations, target: SvgAnimations): boole
     return equal
 }
 it("should success", () => {
-    var animations = Timelines.buildAnimationsFromState(testSvgState, Map(), 1)
+    var animations = Timelines.buildAnimationsFromState(testSvgState, Map(), 1, TweenMaxAnimationFactory)
     expect(svgAnimationEquals(animations, expectedSvgAnimations)).toBe(true);
 })

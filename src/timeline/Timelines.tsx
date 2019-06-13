@@ -35,7 +35,7 @@ declare global {
     type FrameKey = List<number>
 
     type SvgAnimationFrame = {
-        type?: "rotation"
+        type?: "translate" | "rotate" | "attributes"
         value: FrameValue
         tweenLite: TweenMax
         originTween?: TweenMax
@@ -51,6 +51,12 @@ declare global {
         innerTime: number
         start: number
         scale: number
+    }
+
+    interface AnimationFactory {
+        createFrame: (target, duration, attr, frameValue: FrameValue, targetTime: number) => TweenMax | null
+        createTransformFrame: (target, duration, fromTransform: Transform, toTransform: Transform, targetTime: number) => TweenMax | null
+        createTransformOriginFrame: (helper, target, duration, fromTransform: Transform, toTransform: Transform, targetTime: number) => TweenMax | null
     }
 };
 function mapStateToProps(state: AppState): TimelineStateProps {
@@ -69,22 +75,24 @@ function mapDispatchToProps(dispatch): TimelineDispatchProps {
     }
 }
 
-function createTweenMaxFrame(target, duration, attr, frameValue: FrameValue, targetTime: number) {
-    let fromObj = { [attr]: frameValue.from }
-    let toObj = { [attr]: frameValue.to }
-    return TweenMax.fromTo(target, duration, { attr: fromObj }, { attr: toObj }).pause().seek(targetTime)
-}
+export const TweenMaxAnimationFactory: AnimationFactory = {
+    createFrame: (target, duration, attr, frameValue: FrameValue, targetTime: number) => {
+        let fromObj = { [attr]: frameValue.from }
+        let toObj = { [attr]: frameValue.to }
+        return TweenMax.fromTo(target, duration, { attr: fromObj }, { attr: toObj }).pause().seek(targetTime)
+    },
 
-function createTweenMaxTransformFrame(target, duration, fromTransform: Transform, toTransform: Transform, targetTime: number) {
-    return TweenMax.fromTo(target, duration, fromTransform, toTransform).pause().seek(targetTime)
-}
+    createTransformFrame: (target, duration, fromTransform: Transform, toTransform: Transform, targetTime: number) => {
+        return TweenMax.fromTo(target, duration, fromTransform, toTransform).pause().seek(targetTime)
+    },
 
-function createTweenMaxTransformOriginFrame(helper, target, duration, fromTransform: Transform, toTransform: Transform, targetTime: number) {
-    let tween = TweenMax.fromTo(helper, duration, fromTransform, toTransform).pause().seek(targetTime)
-    Object.keys(fromTransform).forEach((key) => {
-        target._gsTransform[key] = helper[key]
-    })
-    return tween
+    createTransformOriginFrame: (helper, target, duration, fromTransform: Transform, toTransform: Transform, targetTime: number) => {
+        let tween = TweenMax.fromTo(helper, duration, fromTransform, toTransform).pause().seek(targetTime)
+        Object.keys(fromTransform).forEach((key) => {
+            target._gsTransform[key] = helper[key]
+        })
+        return tween
+    }
 }
 
 function setUpInitTransformStack(initTransform): { [key: string]: TimeAndValue } {
@@ -118,7 +126,7 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
         }
     }
 
-    static buildAnimationsFromState(svgStates: SvgStateMap, existsAnimations: SvgAnimations, currentTime: number): SvgAnimations {
+    static buildAnimationsFromState(svgStates: SvgStateMap, existsAnimations: SvgAnimations, currentTime: number, animationFactory: AnimationFactory): SvgAnimations {
         // Recreate the animation frames every time, don't consider the time cost(it's very small currently)
         let svgAnimations: SvgAnimations = Map()
         svgStates.forEach((svgState, id) => {
@@ -157,11 +165,12 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                             if (singleSvgAnimations.get(translateAttr) === undefined)
                                 singleSvgAnimations = singleSvgAnimations.set(translateAttr, Map());
                             singleSvgAnimations = singleSvgAnimations.setIn([translateAttr, List([startTime, curTime])], {
+                                type: "translate",
                                 value: {
                                     from: fromValue,
                                     to: toValue
                                 },
-                                tweenLite: createTweenMaxTransformFrame(document.getElementById(initState.attributes.id), curTime - startTime, fromValue, toValue, currentTime - startTime)
+                                tweenLite: animationFactory.createTransformFrame(document.getElementById(initState.attributes.id), curTime - startTime, fromValue, toValue, currentTime - startTime)
                             })
                         }
                     }
@@ -193,15 +202,15 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                             if (singleSvgAnimations.get(rotationAttr) === undefined)
                                 singleSvgAnimations = singleSvgAnimations.set(rotationAttr, Map());
                             singleSvgAnimations = singleSvgAnimations.setIn([rotationAttr, List([startTime, curTime])], {
-                                type: "rotation",
+                                type: "rotate",
                                 value: {
                                     from: fromValue,
                                     to: toValue
                                 },
                                 helper: helper,
                                 target: target,
-                                originTween: createTweenMaxTransformOriginFrame(helper, target, curTime - startTime, { xOrigin: fromXOrigin, yOrigin: fromYOrigin }, { xOrigin: toXOrigin, yOrigin: toYOrigin }, currentTime - startTime),
-                                tweenLite: createTweenMaxTransformFrame(target, curTime - startTime, fromValue, toValue, currentTime - startTime)
+                                originTween: animationFactory.createTransformOriginFrame(helper, target, curTime - startTime, { xOrigin: fromXOrigin, yOrigin: fromYOrigin }, { xOrigin: toXOrigin, yOrigin: toYOrigin }, currentTime - startTime),
+                                tweenLite: animationFactory.createTransformFrame(target, curTime - startTime, fromValue, toValue, currentTime - startTime)
                             })
                         }
                     }
@@ -236,7 +245,11 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                         if (singleSvgAnimations.get(attr) === undefined)
                             singleSvgAnimations = singleSvgAnimations.set(attr, Map());
                         if (changed) {
-                            singleSvgAnimations = singleSvgAnimations.setIn([attr, frameKey], { value: animation, tweenLite: createTweenMaxFrame(document.getElementById(initState.attributes.id), curTime - localPrevTime, attr, { from: fromValue, to: toValue }, currentTime - frameKey.get(0)) })
+                            singleSvgAnimations = singleSvgAnimations.setIn([attr, frameKey], {
+                                type: "attributes",
+                                value: animation,
+                                tweenLite: animationFactory.createFrame(document.getElementById(initState.attributes.id), curTime - localPrevTime, attr, { from: fromValue, to: toValue }, currentTime - frameKey.get(0))
+                            })
                         }
                     }
                 }
@@ -247,7 +260,7 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
     }
 
     static buildState(props: TimelineProps, componentState: TimelineState): TimelineState {
-        let svgAnimations = Timelines.buildAnimationsFromState(props.svgStates, componentState.svgAnimations, props.currentTime)
+        let svgAnimations = Timelines.buildAnimationsFromState(props.svgStates, componentState.svgAnimations, props.currentTime, TweenMaxAnimationFactory)
         let nextState = {
             ...componentState,
             svgAnimations: svgAnimations,
