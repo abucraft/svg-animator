@@ -68,7 +68,7 @@ function updateSvgAttribute(state: SvgState, action: UpdateSvgAttributeAction): 
     Map(attributesMap).forEach((v, id) => {
         let svgState = svgStates.get(id);
         let oldAttrAndTransform = svgState.get(currentTime)
-        let nowState: SvgNode = oldAttrAndTransform && { attributes: oldAttrAndTransform.attributes, transform: oldAttrAndTransform.transform } || { attributes: {}, transform: {} };
+        let nowState: SvgNode = (oldAttrAndTransform && { ...oldAttrAndTransform }) || { attributes: {}, transform: {} };
         nowState.attributes = { ...nowState.attributes, ...v.attributes };
         nowState.transform = { ...nowState.transform, ...v.transform }
         let newTimeStates = svgState.set(currentTime, nowState);
