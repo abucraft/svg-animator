@@ -2,6 +2,7 @@ import { Component } from 'react'
 import * as React from 'react'
 import { connect } from 'react-redux'
 import SelectedBox from './tools/SelectedBox'
+import { PathEditorConnected } from './tools/PathEditor';
 
 type EditorsProps = {
     svgRoot: SVGSVGElement
@@ -28,6 +29,9 @@ class Editors extends Component<EditorsFullProps> {
         switch (this.props.editMode) {
             case 'select':
                 return (<SelectedBox svgRoot={this.props.svgRoot} />)
+            case 'path-creating':
+            case "path-editing":
+                return (<PathEditorConnected svgRoot={this.props.svgRoot} />)
             default:
                 return null
         }

@@ -13,6 +13,7 @@ declare global {
         svgRoot: SVGSVGElement
         active: boolean,
         onSelect: (name: string) => void
+        onDeselect: (resetDefault: boolean) => void
     }
 
     interface SelectorDispatcherProps {

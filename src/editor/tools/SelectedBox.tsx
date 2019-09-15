@@ -2,7 +2,7 @@ import { Component, RefObject } from 'react'
 import { Subscription } from 'rxjs';
 import { updateSvgAttribute, selectSvgElement, deselectSvgElementAll } from '../../core/Actions';
 import { connect } from 'react-redux';
-import { domPaser, getAttributes, setAttributes, setTransform } from '../../utils/Utils';
+import { domPaser, getAttributes, setAttributes, setTransform, SVG_XMLNS } from '../../utils/Utils';
 import { TransformControl } from './TransformControl';
 import { SvgEditorContext } from '../../app/SvgEditorContext';
 
@@ -184,7 +184,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     }
 
     componentDidMount() {
-        this.box = domPaser.parseFromString(`<rect xmlns="http://www.w3.org/2000/svg" style="cursor:move;" x="0" y="0" width="100" height="100" stroke="black" stroke-width="0.5px" fill="transparent"/>`, "image/svg+xml").firstChild as any as SVGRectElement
+        this.box = domPaser.parseFromString(`<rect xmlns="${SVG_XMLNS}" style="cursor:move;" x="0" y="0" width="100" height="100" stroke="black" stroke-width="0.5px" fill="transparent"/>`, "image/svg+xml").firstChild as any as SVGRectElement
         this.props.svgRoot.appendChild(this.box)
         this.box.addEventListener('mousedown', this.onMouseDown)
         this.box.addEventListener('click', this.onClick)

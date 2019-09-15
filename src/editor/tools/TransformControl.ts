@@ -3,7 +3,7 @@ import { dispatch } from "../../core/Store";
 import { updateSvgAttribute, selectSvgElement } from "../../core/Actions";
 import { getAttributes, setAttributes, setTransform } from "../../utils/Utils";
 import { RotatePoint } from "./RotatePoint";
-import { fromRotation, degree2Rad, invert, vec3Multiply } from "../../utils/mat3";
+import { fromRotation, degree2Rad, invert, multiplyVec3 } from "../../utils/mat3";
 
 export class TransformControl {
     nwpoint: RectDragPoint
@@ -37,10 +37,11 @@ export class TransformControl {
 
     onResizeElement = (location: RotateLocation) => (p: DeltaPoint2D) => {
         let reverseMat = new Array(9)
-        fromRotation(reverseMat, degree2Rad(this.rotation))
+        // rotation is reversed in calculation than svg element
+        fromRotation(reverseMat, degree2Rad(-this.rotation))
         invert(reverseMat, reverseMat)
         let targetVec = [p.dx, p.dy, 1]
-        vec3Multiply(targetVec, targetVec, reverseMat)
+        multiplyVec3(targetVec, reverseMat, targetVec)
         let dx = targetVec[0]
         let dy = targetVec[1]
         this.selectSvgElements.forEach(elm => {

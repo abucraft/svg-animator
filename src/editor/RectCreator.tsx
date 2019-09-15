@@ -4,11 +4,11 @@ import * as classNames from 'classnames'
 import { changeEditMode, createSvgNode } from '../core/Actions';
 import { connect } from 'react-redux';
 import { SvgEditorContext } from '../app/SvgEditorContext';
-import { clientPoint2ViewportPoint } from './Utils';
+import { clientPoint2SvgPoint } from './Utils';
 
 export type CreatorDispathProps = {
     onCreateSvgElement: (obj: SvgNode) => void
-    changeToCreateMode: () => void
+    changeEditMode: (mode: SvgEditMode) => void
 }
 
 export type CreatorProps = ToolBaseProps & CreatorDispathProps
@@ -18,8 +18,8 @@ export function mapDispatchForCreator(dispatch): CreatorDispathProps {
         onCreateSvgElement: (obj: SvgNode) => {
             dispatch(createSvgNode(obj))
         },
-        changeToCreateMode: () => {
-            dispatch(changeEditMode("creating"))
+        changeEditMode: (mode: SvgEditMode) => {
+            dispatch(changeEditMode(mode))
         }
     }
 }
@@ -30,7 +30,7 @@ class RectCreator extends Component<CreatorProps> {
     componentDidUpdate(prevProps: CreatorProps) {
         if (this.props.active !== prevProps.active) {
             if (this.props.active) {
-                this.props.changeToCreateMode()
+                this.props.changeEditMode("creating")
                 this.props.svgRoot.addEventListener("click", this.onSvgClick)
             } else {
                 this.props.svgRoot.removeEventListener("click", this.onSvgClick)
@@ -44,7 +44,7 @@ class RectCreator extends Component<CreatorProps> {
 
     onSvgClick = (event: MouseEvent) => {
         let mousePoint = { x: event.clientX, y: event.clientY }
-        let svgPoint = clientPoint2ViewportPoint(this.props.svgRoot, mousePoint)
+        let svgPoint = clientPoint2SvgPoint(mousePoint, this.props.svgRoot)
         this.props.onCreateSvgElement({
             nodeName: 'rect',
             attributes: {
@@ -60,6 +60,9 @@ class RectCreator extends Component<CreatorProps> {
                 yOrigin: 0
             },
         })
+
+        // reset the mode for default value 
+        this.props.onDeselect(true)
     }
 
     onClick = () => {

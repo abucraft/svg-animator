@@ -1,5 +1,5 @@
-import { domPaser, setAttributes, setTransform } from "../../utils/Utils";
-import { fromRotation, degree2Rad, vec3Multiply } from "../../utils/mat3";
+import { domPaser, setAttributes, setTransform, SVG_XMLNS } from "../../utils/Utils";
+import { fromRotation, degree2Rad, multiplyVec3 } from "../../utils/mat3";
 
 export type DragCursor = 'nw-resize' | 'ne-resize' | 'sw-resize' | 'se-resize'
 export type RotateLocation = 'nw' | 'ne' | 'sw' | 'se'
@@ -34,8 +34,9 @@ export abstract class BasePoint {
         // rotate position around center by degree
         let vec = [this.pointPosition.x - this.center.x, this.pointPosition.y - this.center.y, 1]
         let rotateMat = new Array(9);
-        fromRotation(rotateMat, degree2Rad(this.degree))
-        vec3Multiply(vec, vec, rotateMat)
+        // Rotation is reversed than svg transform attributes
+        fromRotation(rotateMat, degree2Rad(-this.degree))
+        multiplyVec3(vec, rotateMat, vec)
         return {
             x: this.center.x + vec[0],
             y: this.center.y + vec[1],
@@ -109,15 +110,23 @@ abstract class BaseDragPoint extends BasePoint {
     }
 }
 
+
+export function createCircle(): SVGCircleElement {
+    return domPaser.parseFromString(`<circle xmlns="${SVG_XMLNS}" cx="0" cy="0" stroke="black" stroke-width="0.5px" fill="white"/>`, "image/svg+xml").firstChild as SVGCircleElement
+}
+
 export class CircleDragPoint extends BaseDragPoint {
     createPoint(): SVGElement {
-        return domPaser.parseFromString(`<circle xmlns="http://www.w3.org/2000/svg" style="cursor:${this.location}-resize;" cx="0" cy="0" r="${this.pointSize}" stroke="black" stroke-width="0.5px" fill="white"/>`, "image/svg+xml").firstChild as any as SVGElement
+        var circle = createCircle()
+        circle.setAttribute("style", `cursor:${this.location}-resize;`)
+        circle.setAttribute('r', this.pointSize.toString())
+        return circle
     }
 }
 
 
 export class RectDragPoint extends BaseDragPoint {
     createPoint(): SVGElement {
-        return domPaser.parseFromString(`<rect xmlns="http://www.w3.org/2000/svg" style="cursor:${this.location}-resize;" x="${-this.pointSize}" y="${-this.pointSize}" width="${this.pointSize * 2}" height="${this.pointSize * 2}" stroke="black" stroke-width="0.5px" fill="white"/>`, "image/svg+xml").firstChild as any as SVGElement
+        return domPaser.parseFromString(`<rect xmlns="${SVG_XMLNS}" style="cursor:${this.location}-resize;" x="${-this.pointSize}" y="${-this.pointSize}" width="${this.pointSize * 2}" height="${this.pointSize * 2}" stroke="black" stroke-width="0.5px" fill="white"/>`, "image/svg+xml").firstChild as any as SVGElement
     }
 }

@@ -1,6 +1,7 @@
 import { Timelines } from "../timeline/Timelines";
 import { Map } from "immutable";
 import { animationFrame } from "rxjs/internal/scheduler/animationFrame";
+import { SVG_XMLNS } from "../utils/Utils";
 
 
 export const NoopAnimationFactory: AnimationFactory = {
@@ -58,7 +59,7 @@ export function exportToSvgString(svgStates: SvgStateMap): string {
     })
 
     return `<?xml version="1.0"?>
-    <svg xmlns="http://www.w3.org/2000/svg" 
+    <svg xmlns="${SVG_XMLNS}" 
          width="1000" height="800">
          ${svgStr}
     </svg>`

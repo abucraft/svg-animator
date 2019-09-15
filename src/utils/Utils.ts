@@ -1,4 +1,5 @@
 import { Map } from 'immutable'
+import { Point } from 'unist';
 declare global {
     type AttrValueType = 'number' | 'string'
 
@@ -13,6 +14,22 @@ export function dispatchWindowResize() {
 }
 
 export const domPaser = new DOMParser()
+
+export const SVG_XMLNS = "http://www.w3.org/2000/svg"
+
+export const deepCopy = function <T>(obj: T): T {
+    if (obj instanceof Array) {
+        return obj.map(v => deepCopy(v)) as any
+    }
+    if (typeof obj === "object") {
+        var res = {}
+        Object.keys(obj).forEach(key => {
+            res[key] = deepCopy(obj[key])
+        })
+        return res as T
+    }
+    return obj
+}
 
 export function getAttributes<T extends { [key: string]: AttrValueType }>(elm: SVGElement, schema: T): { [k in keyof T]: any } {
     return Map(schema).map((s, key) => {

@@ -6,7 +6,7 @@ import { svgToJson, initialSvg, nodeToJson, copySvgFields, compareSvgFields, svg
 import { Map } from 'immutable'
 import { onErrorResumeNext } from 'rxjs';
 declare global {
-    type SvgEditMode = 'select' | 'path-editing' | 'creating'
+    type SvgEditMode = 'select' | 'path-editing' | 'path-creating' | 'creating'
     type SvgStateMap = Map<string, Map<number, SvgNode>>
     interface SvgState {
         editMode: SvgEditMode,
@@ -121,7 +121,11 @@ function handleCreateSvgNode(state: SvgState, action: CreateSvgNodeAction): SvgS
     elementIncreamentalId += 1
     action.value.attributes.id = getElementId()
     let newMap = state.svgStates.set(getElementId(), Map([[0, action.value]]))
-    return { ...state, svgStates: newMap }
+    let selectedIds = state.selectedElementIds
+    if (action.value.nodeName == "path") {
+        selectedIds = [action.value.attributes.id]
+    }
+    return { ...state, svgStates: newMap, selectedElementIds: selectedIds }
 }
 
 const errorAlerter = store => next => action => {

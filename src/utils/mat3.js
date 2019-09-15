@@ -752,17 +752,17 @@ export function degree2Rad(degree){
 }
 
 /**
- * vec3 * mat
+ * mat * vec3
  * @returns vec3 out
  */
-export function vec3Multiply(out, vec3, mat){
+export function multiplyVec3(out, mat, vec3){
   let x = vec3[0], y = vec3[1], z = vec3[2]
   let a00 = mat[0], a01 = mat[1], a02 = mat[2];
   let a10 = mat[3], a11 = mat[4], a12 = mat[5];
   let a20 = mat[6], a21 = mat[7], a22 = mat[8]; 
-  out[0] = x * a00 + y * a10 + z * a20
-  out[1] = x * a01 + y * a11 + z * a21
-  out[2] = x * a02 + y * a12 + z * a22
+  out[0] = x * a00 + y * a01 + z * a02
+  out[1] = x * a10 + y * a11 + z * a12
+  out[2] = x * a20 + y * a21 + z * a22
 }
 
 export function rat2Degree(rat) {

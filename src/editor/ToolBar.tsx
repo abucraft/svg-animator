@@ -8,6 +8,7 @@ import Editors from './Editors'
 import { RectCreatorName, ConnectedRectCreator } from './RectCreator';
 import { Subscription } from 'rxjs';
 import { EllipseCreatorName, ConnectedEllipseCreator } from './EllipseCreator';
+import { PathCreatorName, PathCreatorConnected } from './PathCreator';
 
 declare global {
     interface ToolBarState {
@@ -32,7 +33,8 @@ export default class ToolBar extends Component<any, ToolBarState> {
             tools: OrderedMap({
                 [SelectorName]: ConnectedSelector,
                 [RectCreatorName]: ConnectedRectCreator,
-                [EllipseCreatorName]: ConnectedEllipseCreator
+                [EllipseCreatorName]: ConnectedEllipseCreator,
+                [PathCreatorName]: PathCreatorConnected
             })
         }
     }
@@ -53,11 +55,20 @@ export default class ToolBar extends Component<any, ToolBarState> {
         this.setState({ activeToolName: name })
     }
 
+    onToolDeselect = (resetDefault: boolean) => {
+        // default mode is select mode
+        if (resetDefault) {
+            this.setState({ activeToolName: SelectorName })
+        } else {
+            this.setState({ activeToolName: "" })
+        }
+    }
+
     render() {
         return (
             this.state.svgRoot && <div className="tool-bar" style={{ paddingTop: "70px", alignSelf: "stretch", display: "flex", flexDirection: 'column' }}>
                 {this.state.tools.map((Tool, name) =>
-                    <Tool key={name} svgRoot={this.state.svgRoot} active={this.isToolActive(name)} onSelect={this.onToolSelect} />).valueSeq().toArray()}
+                    <Tool key={name} svgRoot={this.state.svgRoot} active={this.isToolActive(name)} onSelect={this.onToolSelect} onDeselect={this.onToolDeselect} />).valueSeq().toArray()}
                 <Editors svgRoot={this.state.svgRoot} />
             </div>
         )

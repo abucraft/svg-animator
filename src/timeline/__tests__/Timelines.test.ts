@@ -1,5 +1,6 @@
 import { Timelines, TweenMaxAnimationFactory } from '../Timelines'
 import { Map, List } from 'immutable'
+import { SVG_XMLNS } from '../../utils/Utils';
 
 let testSvgState = Map<string, Map<number, any>>([['element1', Map([
     [0, {
@@ -30,8 +31,8 @@ let expectedSvgAnimations = Map({
     })
 })
 
-var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-var circle = document.createElementNS("http://www.w3.org/2000/svg", "circle")
+var svg = document.createElementNS(SVG_XMLNS, "svg")
+var circle = document.createElementNS(SVG_XMLNS, "circle")
 document.body.append(svg)
 svg.append(circle)
 circle.id = "element1"

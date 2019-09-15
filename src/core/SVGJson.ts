@@ -6,7 +6,7 @@ declare global {
     interface Transform {
         x?: number
         y?: number
-        rotation?: number
+        rotation?: number // rotation is stored in degree
         xOrigin?: number
         yOrigin?: number
         scaleX?: number

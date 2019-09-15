@@ -6,7 +6,7 @@ import { SizedComponent } from '../utils/SizedComponent'
 import { Map } from 'immutable'
 import { TweenMax } from 'gsap/umd/TweenMax'
 import { SvgEditorContext } from '../app/SvgEditorContext';
-import { setTransform } from '../utils/Utils';
+import { setTransform, SVG_XMLNS, pointsToLinePath } from '../utils/Utils';
 
 declare global {
     type SvgCanvasStateProps = {
@@ -53,16 +53,36 @@ class SvgCanvas extends Component<SvgCanvasProps> {
             if (oldSvgStates.get(id) === undefined) {
                 let keys = svgState.keySeq().sort((v1, v2) => v1 - v2)
                 let initState = svgState.get(keys.get(0));
-                let svg = document.createElementNS("http://www.w3.org/2000/svg", initState.nodeName)
+                let svg = document.createElementNS(SVG_XMLNS, initState.nodeName)
                 let initAttributes = initState.attributes
-                for (let attr in initAttributes) {
-                    svg.setAttribute(attr, initAttributes[attr])
-                }
+                this.updateSvgAttributes(svg, initAttributes)
                 this.svgRoot.current.appendChild(svg);
                 setInitGsTransform(svg)
                 setTransform(svg, initState.transform)
             }
+            else if (oldSvgStates.get(id) !== svgState) {
+                // check init svg state
+                let keys = svgState.keySeq().sort((v1, v2) => v1 - v2)
+                let initState = svgState.get(keys.get(0));
+                let oldSvgState = oldSvgStates.get(id)
+                let oldKeys = oldSvgState.keySeq().sort((v1, v2) => v1 - v2)
+                let oldInitState = oldSvgState.get(oldKeys.get(0))
+                if (initState !== oldInitState) {
+                    let svg = this.svgRoot.current.getElementById(id)
+                    this.updateSvgAttributes(svg as SVGElement, initState.attributes)
+                }
+            }
         })
+    }
+
+    updateSvgAttributes = (svg: SVGElement, initAttributes: { [key: string]: any }) => {
+        for (let attr in initAttributes) {
+            let attrValue = initAttributes[attr]
+            if (attr === "d") {
+                attrValue = pointsToLinePath(attrValue)
+            }
+            svg.setAttribute(attr, attrValue)
+        }
     }
 
     componentDidMount() {
@@ -79,7 +99,7 @@ class SvgCanvas extends Component<SvgCanvasProps> {
     }
 
     render() {
-        return (<svg ref={this.svgRoot} style={{ position: 'absolute' }} width={this.props.width + 'px'} height={this.props.height + 'px'} xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>)
+        return (<svg ref={this.svgRoot} style={{ position: 'absolute' }} width={this.props.width + 'px'} height={this.props.height + 'px'} xmlns={SVG_XMLNS} version="1.1"></svg>)
     }
 }
 

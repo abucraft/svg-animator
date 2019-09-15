@@ -270,6 +270,7 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
     }
 
     onTimelineMove = (time: number) => {
+        // TODO: fix the order when playing transform animation
         this.state.svgAnimations.forEach((animations) => {
             animations.forEach((attrAnimations, attr) => {
                 attrAnimations.forEach((animation, frameKey) => {

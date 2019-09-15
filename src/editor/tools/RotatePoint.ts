@@ -1,7 +1,8 @@
-import { domPaser, setAttributes, pointsToLinePath, setTransform } from "../../utils/Utils";
+import { domPaser, setAttributes, pointsToLinePath, setTransform, SVG_XMLNS } from "../../utils/Utils";
 import './RotatePoint.css'
-import { fromRotation, vec3Multiply, degree2Rad, rat2Degree } from "../../utils/mat3";
+import { fromRotation, degree2Rad, rat2Degree, multiplyVec3 } from "../../utils/mat3";
 import { RotateLocation, BasePoint } from "./DragPoint";
+import { svgPoint2ClientPoint } from "../Utils";
 
 
 export class RotatePoint extends BasePoint {
@@ -38,18 +39,20 @@ export class RotatePoint extends BasePoint {
         { x: 0 + this.pointSize, y: 0 - this.pointSize * 3 },
         { x: 0 + this.pointSize, y: 0 - this.pointSize },
         { x: 0 - this.pointSize, y: 0 - this.pointSize }]
+        
+        // In element local coordinate system, rotation is reversed
         switch (this.location) {
             case "ne":
-                points = this.rotatePoints(points, 90)
+                points = this.rotatePoints(points, -90)
                 break;
             case "se":
-                points = this.rotatePoints(points, 180)
+                points = this.rotatePoints(points, -180)
                 break;
             case "sw":
-                points = this.rotatePoints(points, 270)
+                points = this.rotatePoints(points, 90)
                 break;
         }
-        var path = domPaser.parseFromString(`<path xmlns="http://www.w3.org/2000/svg" class="rotate-point" d="${pointsToLinePath(points)}" vector-effect="non-scaling-stroke" stroke="black" stroke-width="0.5px" fill="white"/>`, "image/svg+xml").firstChild as any as SVGElement
+        var path = domPaser.parseFromString(`<path xmlns="${SVG_XMLNS}" class="rotate-point" d="${pointsToLinePath(points)}" vector-effect="non-scaling-stroke" stroke="black" stroke-width="0.5px" fill="white"/>`, "image/svg+xml").firstChild as any as SVGElement
         return path
     }
 
@@ -58,7 +61,7 @@ export class RotatePoint extends BasePoint {
         fromRotation(rotateMat, degree2Rad(degree));
         return points.map(point => {
             let vec = [point.x, point.y, 1]
-            vec3Multiply(vec, vec, rotateMat)
+            multiplyVec3(vec, rotateMat, vec)
             return {
                 x: vec[0],
                 y: vec[1]
@@ -67,22 +70,7 @@ export class RotatePoint extends BasePoint {
     }
 
     getClientCenter(): Point2D {
-        let viewBox = this.svgRoot.viewBox
-        let clientRect = this.svgRoot.getClientRects()[0]
-        if (viewBox.baseVal === null || // Firefox unset viewBox baseVal is null  
-            viewBox.baseVal.width == 0 ||
-            viewBox.baseVal.height == 0) {
-            return {
-                x: this.center.x + clientRect.left,
-                y: this.center.y + clientRect.top
-            }
-        } else {
-            return {
-                x: (this.center.x - viewBox.baseVal.left) * clientRect.width / viewBox.baseVal.width + clientRect.left,
-                y: (this.center.y - viewBox.baseVal.top) * clientRect.height / viewBox.baseVal.height + clientRect.top
-            }
-        }
-
+        return svgPoint2ClientPoint(this.center, this.svgRoot)
     }
 
     setDegree(degree: number) {
