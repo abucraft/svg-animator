@@ -9,10 +9,6 @@ declare global {
     type Rect2D = Point2D & { width: number, height: number }
 }
 
-export function dispatchWindowResize() {
-    window.dispatchEvent(new Event('resize'));
-}
-
 export const domPaser = new DOMParser()
 
 export const SVG_XMLNS = "http://www.w3.org/2000/svg"

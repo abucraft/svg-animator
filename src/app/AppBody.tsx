@@ -8,7 +8,6 @@ import SvgTextEditor from "../text-editor/SVGTextEditor"
 import SvgCanvas from '../canvas/SVGCanvas'
 import Timelines from '../timeline/Timelines'
 import ToolBar from '../editor/ToolBar'
-import { dispatchWindowResize } from '../utils/Utils'
 import { BehaviorSubject, Subject } from 'rxjs';
 import { SvgEditorContext } from './SvgEditorContext';
 import './AppBody.less'
@@ -61,10 +60,10 @@ class AppBody extends Component<AppBodyProps> {
                 </div>
                 <div style={{ flex: 1 }}>
                     <SvgEditorContext.Provider value={this.svgEditorContextValue}>
-                        <SplitPane style={{ position: 'relative' }} split="horizontal" defaultSize={200} primary="second" onChange={dispatchWindowResize} onDragFinished={dispatchWindowResize}>
+                        <SplitPane style={{ position: 'relative' }} split="horizontal" defaultSize={200} primary="second">
                             <div className="editor">
                                 <ToolBar></ToolBar>
-                                <SplitPane style={{ position: 'relative', height: 'auto', alignSelf: 'stretch' }} split="vertical" defaultSize={500} primary="second" onChange={dispatchWindowResize} onDragFinished={dispatchWindowResize} pane2Style={{ flexDirection: 'row' }}>
+                                <SplitPane style={{ position: 'relative', height: 'auto', alignSelf: 'stretch' }} split="vertical" defaultSize={500} primary="second" pane2Style={{ flexDirection: 'row' }}>
                                     <SvgCanvas className="svg-canvas" />
                                     <SvgTextEditor style={{ flex: 1, width: 0 }} />
                                 </SplitPane>

@@ -1,5 +1,6 @@
 import { Component, RefObject } from 'react'
 import * as React from 'react'
+import { ResizeSensor } from 'css-element-queries'
 
 declare global {
     interface SizedComponentState {
@@ -17,6 +18,7 @@ export function SizedComponent<P>(WrappedComponent: React.ComponentType<P>): Rea
         state: SizedComponentState
         wrapper: RefObject<HTMLDivElement>
         props: any
+        resizeSensor: ResizeSensor
         constructor(props) {
             super(props);
             this.state = {
@@ -25,21 +27,15 @@ export function SizedComponent<P>(WrappedComponent: React.ComponentType<P>): Rea
             }
             this.wrapper = React.createRef();
         }
-
-        onResize = () => {
-            let rect = this.wrapper.current.getBoundingClientRect()
-            this.setState({
-                width: rect.width,
-                height: rect.height
-            })
-        }
+        
         componentDidMount() {
-            this.onResize()
-            window.addEventListener('resize', this.onResize)
+            this.resizeSensor = new ResizeSensor(this.wrapper.current, (size) => {
+                this.setState({ width: size.width, height: size.height })
+            })
         }
 
         componentWillUnmount() {
-            window.removeEventListener('resize', this.onResize)
+            this.resizeSensor.detach()
         }
         render() {
             return (
