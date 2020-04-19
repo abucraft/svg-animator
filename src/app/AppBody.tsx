@@ -1,8 +1,10 @@
 import { Component } from 'react'
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { Alert, Icon, Button } from 'antd'
+import { Alert, Button } from 'antd'
 import SplitPane from 'react-split-pane'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload'
 import { clearAlert } from '../core/Actions'
 import SvgTextEditor from "../text-editor/SVGTextEditor"
 import SvgCanvas from '../canvas/SVGCanvas'
@@ -56,7 +58,7 @@ class AppBody extends Component<AppBodyProps> {
                         <Logo width="25" height="25" viewBox="0 0 640 640" style={{ marginTop: "auto", marginBottom: "auto" }} />
                         <h3 style={{ marginLeft: "16px" }}>SVG Animator</h3>
                     </div>
-                    <Button type="primary" onClick={this.handleExport} style={{ height: "100%", borderRadius: 0 }}><Icon type="download" />Download</Button>
+                    <Button type="primary" onClick={this.handleExport} style={{ height: "100%", borderRadius: 0 }}><FontAwesomeIcon size="lg" icon={faDownload} style={{ marginRight: 16 }} />Download</Button>
                 </div>
                 <div style={{ flex: 1 }}>
                     <SvgEditorContext.Provider value={this.svgEditorContextValue}>

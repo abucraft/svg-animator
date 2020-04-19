@@ -10,68 +10,70 @@ const htmlPlugin = new HtmlWebPackPlugin({
     favicon: './favicon.ico'
 });
 
-module.exports = {
-    mode: 'development',
-    entry: './src/index.tsx',
-    devtool: 'source-map',
-    devServer: {
-        contentBase: './dist'
-    },
-    optimization: {
-        usedExports: true
-    },
-    resolve: {
-        // Add '.ts' and '.tsx' as resolvable extensions.
-        extensions: [".ts", ".tsx", ".js", ".json"]
-    },
-    module: {
-        rules: [
-            {
-                test: /\.svg$/,
-                use: ['@svgr/webpack'],
-            },
-            {
-                test: /\.(png|jpg|cur)/,
-                use: ['file-loader']
-            },
-            {
-                test: /\.(j|t)sx?$/,
-                exclude: /node_modules/,
-                use: {
-                    loader: 'ts-loader',
-                    options: {
-                        transpileOnly: true,
-                        getCustomTransformers: () => ({
-                            before: [tsImportPluginFactory({
-                                libraryName: 'antd',
-                                libraryDirectory: 'lib',
-                                style: true
-                            })]
-                        }),
-                        compilerOptions: {
-                            module: 'es2015'
+module.exports = function (webpackEnv) {
+    return {
+        mode: webpackEnv,
+        entry: './src/index.tsx',
+        devtool: webpackEnv === "production" ? false : 'source-map',
+        devServer: {
+            contentBase: './dist'
+        },
+        optimization: {
+            usedExports: true
+        },
+        resolve: {
+            // Add '.ts' and '.tsx' as resolvable extensions.
+            extensions: [".ts", ".tsx", ".js", ".json"]
+        },
+        module: {
+            rules: [
+                {
+                    test: /\.svg$/,
+                    use: ['@svgr/webpack'],
+                },
+                {
+                    test: /\.(png|jpg|cur)/,
+                    use: ['file-loader']
+                },
+                {
+                    test: /\.(j|t)sx?$/,
+                    exclude: /node_modules/,
+                    use: {
+                        loader: 'ts-loader',
+                        options: {
+                            transpileOnly: true,
+                            getCustomTransformers: () => ({
+                                before: [tsImportPluginFactory({
+                                    libraryName: 'antd',
+                                    libraryDirectory: 'lib',
+                                    style: true
+                                })]
+                            }),
+                            compilerOptions: {
+                                module: 'es2015'
+                            }
                         }
                     }
+                },
+                {
+                    test: /\.(le|c)ss$/,
+                    use: ['style-loader', 'css-loader', {
+                        loader: 'less-loader',
+                        options: {
+                            javascriptEnabled: true
+                        }
+                    }]
                 }
-            },
-            {
-                test: /\.(le|c)ss$/,
-                use: ['style-loader', 'css-loader', {
-                    loader: 'less-loader',
-                    options: {
-                        javascriptEnabled: true
-                    }
-                }]
-            }
+            ]
+        },
+        output: {
+            filename: '[name].bundle.js',
+            path: path.resolve(__dirname, 'dist')
+        },
+        plugins: [
+            new webpack.NamedModulesPlugin(),
+            htmlPlugin,
+            new BundleAnalyzerPlugin()
         ]
-    },
-    output: {
-        filename: '[name].bundle.js',
-        path: path.resolve(__dirname, 'dist')
-    },
-    plugins: [
-        new webpack.NamedModulesPlugin(),
-        htmlPlugin,
-        //new BundleAnalyzerPlugin()
-    ]
-};
+    }
+}

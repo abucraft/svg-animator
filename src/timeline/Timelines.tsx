@@ -5,7 +5,6 @@ import { connect } from 'react-redux'
 import { TweenMax } from 'gsap/umd/TweenMax'
 import { Map, List } from 'immutable'
 
-import { Object } from 'core-js';
 import { compose } from 'redux';
 
 import FrameContainer from './FrameContainer'
