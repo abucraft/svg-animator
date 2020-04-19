@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { createCircle } from './DragPoint';
-import { setAttributes, deepCopy, SVG_XMLNS, pointsToLinePath } from '../../utils/Utils';
+import { setAttributes, deepCopy, SVG_XMLNS, pointsToLinePath, setTransform } from '../../utils/Utils';
 import { clientPoint2SvgPoint, unapplyTransform } from '../Utils';
 import { changeEditMode, updateSvgAttribute } from '../../core/Actions';
 import { connect } from 'react-redux';
@@ -85,6 +85,7 @@ class PathEditor extends Component<PathEditorProps, PathEditorState>{
         let initState = this.getInitState(this.props.svgStates, selectedElementIds[0])
         this.pathCreation = new PathCreation(this.props.svgRoot,
             this.props.svgRoot.getElementById(selectedElementIds[0]) as SVGPathElement,
+            initState.transform,
             initState.attributes["d"], (pts) => {
                 this.props.updateSvgAttribute({
                     [this.props.selectedElementIds[0]]: {
@@ -125,13 +126,15 @@ class PathCreation {
     pointElms: SVGCircleElement[]
     path: SVGPathElement
     svg: SVGSVGElement
+    transform: Transform
     onCreateNewPoint: (pts: Point2D[]) => void
-    circleRadius = 2
-    constructor(svg: SVGSVGElement, path: SVGPathElement, pathPoints: Point2D[], onCreateNewPoint: (pts: Point2D[]) => void, onClosePath: (pts: Point2D[]) => void) {
+    circleRadius = 4
+    constructor(svg: SVGSVGElement, path: SVGPathElement, transform: Transform, pathPoints: Point2D[], onCreateNewPoint: (pts: Point2D[]) => void, onClosePath: (pts: Point2D[]) => void) {
         this.points = [...pathPoints, deepCopy(pathPoints[pathPoints.length - 1])]
+        this.transform = transform
         this.pointElms = this.points.map((pt, index) => {
             var circle = this.createCircle()
-            setAttributes(circle, pt)
+            this.updateCirclePos(circle, pt, transform)
             if (index == 0) {
                 circle.addEventListener("click", () => {
                     let closedPath = [...(this.points.slice(0, this.points.length - 1)), deepCopy(this.points[0])]
@@ -154,12 +157,17 @@ class PathCreation {
         return circle;
     }
 
+    updateCirclePos(circle: SVGCircleElement, pt: Point2D, transform: Transform) {
+        setAttributes(circle, { cx: pt.x, cy: pt.y })
+        setTransform(circle, transform)
+    }
+
     mouseMove = (event: MouseEvent) => {
         var pt = { x: event.clientX, y: event.clientY }
         var svgPt = clientPoint2SvgPoint(pt, this.svg)
-         console.log(svgPt, this.path._gsTransform)
+        // console.log(svgPt, this.path._gsTransform)
         var elemPt = unapplyTransform(svgPt, this.path._gsTransform)
-         console.log(elemPt)
+        // console.log(elemPt)
         this.applyLastPtPosition(elemPt)
     }
 
@@ -170,13 +178,16 @@ class PathCreation {
             for (var i = this.points.length; i < this.pointElms.length; i++) {
                 this.pointElms[i].remove()
             }
+            this.pointElms.splice(this.points.length - 1, this.pointElms.length - this.points.length)
         } else if (this.pointElms.length < this.points.length) {
             for (var i = this.pointElms.length; i < this.points.length; i++) {
-                this.pointElms.push(this.createCircle())
+                var circle = this.createCircle()
+                this.pointElms.push(circle)
+                this.svg.appendChild(circle)
             }
         }
         this.points.forEach((pt, index) => {
-            setAttributes(this.pointElms[index], pt)
+            this.updateCirclePos(this.pointElms[index], pt, this.transform)
         })
     }
 

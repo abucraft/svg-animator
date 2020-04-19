@@ -73,14 +73,14 @@ export function unapplyTransform(pt: Point2D, transform: Transform) {
 
     invert(rotateMat, rotateMat)
 
-     console.log("inverted mat", rotateMat)
+    //  console.log("inverted mat", rotateMat)
 
     let ptVec = [pt.x, pt.y, 1]
 
     multiplyVec3(ptVec, rotateMat, ptVec)
 
-    console.log("original point", pt);
-    console.log("transformed", ptVec)
+    // console.log("original point", pt);
+    // console.log("transformed", ptVec)
     return {
         x: ptVec[0],
         y: ptVec[1]

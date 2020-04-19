@@ -64,26 +64,45 @@ function apply(value: { [key: string]: string[] }): string {
 }
 
 export function setTransform(elm: SVGElement, transform: Transform) {
-    elm._gsTransform = elm._gsTransform || {}
-    elm._gsTransform.x = (transform.x === undefined ? elm._gsTransform.x : transform.x) || 0
-    elm._gsTransform.y = (transform.y === undefined ? elm._gsTransform.y : transform.y) || 0
-    elm._gsTransform.rotation = (transform.rotation === undefined ? elm._gsTransform.rotation : transform.rotation) || 0
-    elm._gsTransform.xOrigin = (transform.xOrigin === undefined ? elm._gsTransform.xOrigin : transform.xOrigin) || 0
-    elm._gsTransform.yOrigin = (transform.yOrigin === undefined ? elm._gsTransform.yOrigin : transform.yOrigin) || 0
+    elm._gsTransform = elm._gsTransform || { ...DefaultTransform }
+    elm._gsTransform.x = transform.x === undefined ? elm._gsTransform.x : transform.x
+    elm._gsTransform.y = transform.y === undefined ? elm._gsTransform.y : transform.y
+    elm._gsTransform.rotation = transform.rotation === undefined ? elm._gsTransform.rotation : transform.rotation
+    elm._gsTransform.xOrigin = transform.xOrigin === undefined ? elm._gsTransform.xOrigin : transform.xOrigin
+    elm._gsTransform.yOrigin = transform.yOrigin === undefined ? elm._gsTransform.yOrigin : transform.yOrigin
+    elm._gsTransform.scaleX = transform.scaleX === undefined ? elm._gsTransform.scaleX : transform.scaleX
+    elm._gsTransform.scaleY = transform.scaleY === undefined ? elm._gsTransform.scaleY : transform.scaleY
     var transformObj = {}
-    transformObj["translate"] = [elm._gsTransform.x || 0, elm._gsTransform.y || 0]
-    transformObj["rotate"] = [elm._gsTransform.rotation || 0, elm._gsTransform.xOrigin || 0, elm._gsTransform.yOrigin || 0]
+    transformObj["translate"] = [elm._gsTransform.x, elm._gsTransform.y]
+    transformObj["rotate"] = [elm._gsTransform.rotation, elm._gsTransform.xOrigin, elm._gsTransform.yOrigin]
+    transformObj["scale"] = [elm._gsTransform.scaleX, elm._gsTransform.scaleY]
     elm.setAttribute('transform', apply(transformObj))
 }
 
-export function getTranslate(elm: SVGElement): Point2D {
-    var transformStr = elm.getAttribute("transform")
-    var transformObj = {}
-    if (transformStr) {
-        transformObj = parse(transformStr)
+const DefaultTransform: Transform = {
+    x: 0,
+    y: 0,
+    rotation: 0,
+    xOrigin: 0,
+    yOrigin: 0,
+    scaleX: 1,
+    scaleY: 1
+}
+
+export function getTransform(elm: SVGElement): Transform {
+
+    if (elm._gsTransform) {
+        return { ...DefaultTransform, ...elm._gsTransform }
+    } else {
+        return { ...DefaultTransform }
     }
-    var translate = transformObj["translate"]
-    return translate && translate.length == 2 && { x: parseFloat(translate[0]), y: parseFloat(translate[1]) }
+}
+
+export function getCenterRotateOrigin(bbox: DOMRect, scaleX: number, scaleY: number) {
+    return {
+        xOrigin: (bbox.x + bbox.width / 2) * scaleX,
+        yOrigin: (bbox.y + bbox.height / 2) * scaleY
+    }
 }
 
 export function pointsToLinePath(points: Point2D[]) {

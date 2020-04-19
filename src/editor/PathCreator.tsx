@@ -51,7 +51,7 @@ export class PathCreator extends Component<CreatorProps> {
     }
 
     render() {
-        return <Tooltip title="Select Element" placement="right">
+        return <Tooltip title="Path Creator" placement="right">
             <div className={classNames("tool-button", { 'active': this.props.active })} onClick={this.onClick}>
                 <FontAwesomeIcon size="lg" icon={faPenNib} />
             </div>

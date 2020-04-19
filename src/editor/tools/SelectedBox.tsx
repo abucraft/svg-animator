@@ -2,7 +2,7 @@ import { Component, RefObject } from 'react'
 import { Subscription } from 'rxjs';
 import { updateSvgAttribute, selectSvgElement, deselectSvgElementAll } from '../../core/Actions';
 import { connect } from 'react-redux';
-import { domPaser, getAttributes, setAttributes, setTransform, SVG_XMLNS } from '../../utils/Utils';
+import { domPaser, getAttributes, setAttributes, setTransform, SVG_XMLNS, getTransform } from '../../utils/Utils';
 import { TransformControl } from './TransformControl';
 import { SvgEditorContext } from '../../app/SvgEditorContext';
 
@@ -66,8 +66,8 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
 
     updateTransformFromElements() {
         if (this.state.selectedElements.length === 1) {
-            let gsTransform = this.state.selectedElements[0]._gsTransform
-            this.rotation = (gsTransform && gsTransform.rotation) || 0
+            let transform = getTransform(this.state.selectedElements[0])
+            this.rotation = transform.rotation
         }
     }
 
@@ -93,17 +93,20 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     getBBox = () => {
         return this.state.selectedElements.reduce((prev: SVGRect, elm) => {
             let box2 = elm.getBBox();
-            let translateX = elm._gsTransform.x || 0
-            let translateY = elm._gsTransform.y || 0
+            let transform = getTransform(elm)
+            let translateX = transform.x
+            let translateY = transform.y
+            let scaleX = transform.scaleX
+            let scaleY = transform.scaleY
             if (prev) {
                 let left = prev.x
                 let top = prev.y
                 let right = left + prev.width;
                 let bottom = top + prev.height;
-                let left2 = box2.x + translateX
-                let top2 = box2.y + translateY
-                let right2 = left2 + box2.width;
-                let bottom2 = top2 + box2.height;
+                let left2 = box2.x * scaleX + translateX
+                let top2 = box2.y * scaleY + translateY
+                let right2 = left2 + box2.width * scaleX;
+                let bottom2 = top2 + box2.height * scaleY;
                 prev.x = Math.min(prev.x, left2);
                 prev.y = Math.min(prev.y, top2)
                 prev.width = Math.max(right, right2) - prev.x;
@@ -111,10 +114,10 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
                 return prev;
             } else {
                 return {
-                    x: box2.x + translateX,
-                    y: box2.y + translateY,
-                    width: box2.width,
-                    height: box2.height
+                    x: box2.x * scaleX + translateX,
+                    y: box2.y * scaleY + translateY,
+                    width: box2.width * scaleX,
+                    height: box2.height * scaleY
                 }
             }
         }, null)
@@ -137,7 +140,8 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
         let dy = event.clientY - this.position.y
         this.position = { x: event.clientX, y: event.clientY }
         this.state.selectedElements.forEach(elm => {
-            setTransform(elm, { x: (elm._gsTransform.x || 0) + dx, y: (elm._gsTransform.y || 0) + dy })
+            let transform = getTransform(elm)
+            setTransform(elm, { x: transform.x + dx, y: transform.y + dy })
         })
         this.updateAll()
     }

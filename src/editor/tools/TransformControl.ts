@@ -1,7 +1,7 @@
 import { RectDragPoint, RotateLocation } from "./DragPoint";
 import { dispatch } from "../../core/Store";
 import { updateSvgAttribute, selectSvgElement } from "../../core/Actions";
-import { getAttributes, setAttributes, setTransform } from "../../utils/Utils";
+import { getAttributes, setAttributes, setTransform, getTransform, getCenterRotateOrigin } from "../../utils/Utils";
 import { RotatePoint } from "./RotatePoint";
 import { fromRotation, degree2Rad, invert, multiplyVec3 } from "../../utils/mat3";
 
@@ -67,8 +67,9 @@ export class TransformControl {
                 }
                 setAttributes(elm, { rx, ry })
                 let bbox = elm.getBBox()
-                let transformX = elm._gsTransform.x || 0
-                let transformY = elm._gsTransform.y || 0
+                let transform = getTransform(elm)
+                let transformX = transform.x
+                let transformY = transform.y
                 setTransform(elm, { x: transformX + p.dx / 2, y: transformY + p.dy / 2, rotation: this.rotation, xOrigin: bbox.x + bbox.width / 2, yOrigin: bbox.y + bbox.height / 2 })
             }
             if (elm.nodeName == "rect") {
@@ -97,9 +98,52 @@ export class TransformControl {
                 }
                 setAttributes(elm, { x, y, height, width })
                 let bbox = elm.getBBox()
-                let transformX = elm._gsTransform.x || 0
-                let transformY = elm._gsTransform.y || 0
+                let transform = getTransform(elm)
+                let transformX = transform.x
+                let transformY = transform.y
                 setTransform(elm, { x: transformX + (p.dx - dx) / 2, y: transformY + (p.dy - dy) / 2, rotation: this.rotation, xOrigin: bbox.x + bbox.width / 2, yOrigin: bbox.y + bbox.height / 2 })
+            }
+            if (elm.nodeName == "path") {
+                let bbox = elm.getBBox()
+                let transform = getTransform(elm)
+                let scaleX = transform.scaleX
+                let scaleY = transform.scaleY
+                let transformX = transform.x
+                let transformY = transform.y
+                let realWidth = bbox.width * scaleX
+                let realHeight = bbox.height * scaleY
+                let right = bbox.x + bbox.width
+                let bottom = bbox.y + bbox.height
+                let newScaleX = 1
+                let newScaleY = 1
+                switch (location) {
+                    case 'nw':
+                        newScaleX = ((realWidth - dx) / realWidth) * scaleX
+                        newScaleY = ((realHeight - dy) / realHeight) * scaleY
+                        transformX = (bbox.x * scaleX + transformX + dx) - bbox.x * newScaleX
+                        transformY = (bbox.y * scaleY + transformY + dy) - bbox.y * newScaleY
+                        break;
+                    case 'ne':
+                        newScaleX = ((realWidth + dx) / realWidth) * scaleX
+                        newScaleY = ((realHeight - dy) / realHeight) * scaleY
+                        transformX = (right * scaleX + transformX + dx) - right * newScaleX
+                        transformY = (bbox.y * scaleY + transformY + dy) - bbox.y * newScaleY
+                        break;
+                    case "sw":
+                        newScaleX = ((realWidth - dx) / realWidth) * scaleX
+                        newScaleY = ((realHeight + dy) / realHeight) * scaleY
+                        transformX = (bbox.x * scaleX + transformX + dx) - bbox.x * newScaleX
+                        transformY = (bottom * scaleY + transformY + dy) - bottom * newScaleY
+                        break;
+                    case "se":
+                        newScaleX = ((realWidth + dx) / realWidth) * scaleX
+                        newScaleY = ((realHeight + dy) / realHeight) * scaleY
+                        transformX = (right * scaleX + transformX + dx) - right * newScaleX
+                        transformY = (bottom * scaleY + transformY + dy) - bottom * newScaleY
+                        break;
+                }
+                let newTransform = { x: transformX, y: transformY, scaleX: newScaleX, scaleY: newScaleY, ...getCenterRotateOrigin(bbox, newScaleX, newScaleY) }
+                setTransform(elm, newTransform)
             }
         })
         this.onResize()
@@ -110,7 +154,8 @@ export class TransformControl {
         // console.log("rotation", degree)
         this.selectSvgElements.forEach(elm => {
             let bbox = elm.getBBox()
-            setTransform(elm, { rotation: degree, xOrigin: bbox.x + bbox.width / 2, yOrigin: bbox.y + bbox.height / 2 })
+            let transform = getTransform(elm)
+            setTransform(elm, { rotation: degree,...getCenterRotateOrigin(bbox, transform.scaleX, transform.scaleY) })
         })
         this.onResize()
     }
@@ -120,13 +165,7 @@ export class TransformControl {
         this.selectSvgElements.forEach(elm => {
             attributesMap[elm.id] = {
                 attributes: {},
-                transform: {
-                    x: elm._gsTransform.x,
-                    y: elm._gsTransform.y,
-                    rotation: elm._gsTransform.rotation,
-                    xOrigin: elm._gsTransform.xOrigin,
-                    yOrigin: elm._gsTransform.yOrigin
-                }
+                transform: getTransform(elm)
             }
         })
         dispatch(updateSvgAttribute(attributesMap))
@@ -135,24 +174,22 @@ export class TransformControl {
     onResizeEnd = () => {
         let attributesMap: AttributesAndTransform = {}
         this.selectSvgElements.forEach(elm => {
+            attributesMap[elm.id] = {}
             if (elm.nodeName === 'ellipse') {
-                let attributes = getAttributes(elm, { rx: 'number', ry: 'number' })
-                attributesMap[elm.id] = {
-                    attributes
-                }
+                attributesMap[elm.id].attributes = getAttributes(elm, { rx: 'number', ry: 'number' })
             }
             if (elm.nodeName === 'rect') {
-                let attributes = getAttributes(elm, { x: 'number', y: 'number', width: 'number', height: 'number' })
-                attributesMap[elm.id] = {
-                    attributes
-                }
+                attributesMap[elm.id].attributes = getAttributes(elm, { x: 'number', y: 'number', width: 'number', height: 'number' })
             }
+            let transform = getTransform(elm)
             attributesMap[elm.id].transform = {
-                x: elm._gsTransform.x,
-                y: elm._gsTransform.y,
-                rotation: elm._gsTransform.rotation,
-                xOrigin: elm._gsTransform.xOrigin,
-                yOrigin: elm._gsTransform.yOrigin
+                x: transform.x,
+                y: transform.y,
+                rotation: transform.rotation,
+                xOrigin: transform.xOrigin,
+                yOrigin: transform.yOrigin,
+                scaleX: transform.scaleX,
+                scaleY: transform.scaleY
             }
 
         })
