@@ -4,6 +4,7 @@ import { Tooltip } from "antd";
 import * as classNames from 'classnames'
 import { connect } from "react-redux";
 import { clientPoint2SvgPoint } from "./Utils";
+import { DefaultTransform } from "../utils/Utils";
 
 export const EllipseCreatorName = "EllipseCreator";
 
@@ -35,10 +36,10 @@ class EllipseCreator extends Component<CreatorProps>{
                 ry: 100
             },
             transform: {
-                x: svgPoint.x,
-                y: svgPoint.y,
-                xOrigin: 0,
-                yOrigin: 0
+                ...DefaultTransform, ...{
+                    x: svgPoint.x,
+                    y: svgPoint.y
+                }
             },
         })
         this.props.onDeselect(true)

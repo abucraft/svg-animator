@@ -1,4 +1,4 @@
-import { Timelines, TweenMaxAnimationFactory } from '../Timelines'
+import { Timelines, TweenAnimationFactory } from '../Timelines'
 import { Map, List } from 'immutable'
 import { SVG_XMLNS } from '../../utils/Utils';
 
@@ -78,6 +78,6 @@ function svgAnimationEquals(source: SvgAnimations, target: SvgAnimations): boole
     return equal
 }
 it("should success", () => {
-    var animations = Timelines.buildAnimationsFromState(testSvgState, Map(), 1, TweenMaxAnimationFactory)
+    var animations = Timelines.buildAnimationsFromState(testSvgState, Map(), 1)
     expect(svgAnimationEquals(animations, expectedSvgAnimations)).toBe(true);
 })

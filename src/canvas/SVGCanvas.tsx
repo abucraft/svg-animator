@@ -4,7 +4,6 @@ import { compose } from 'redux'
 import { connect } from 'react-redux'
 import { SizedComponent } from '../utils/SizedComponent'
 import { Map } from 'immutable'
-import { TweenMax } from 'gsap/umd/TweenMax'
 import { SvgEditorContext } from '../app/SvgEditorContext';
 import { setTransform, SVG_XMLNS, pointsToLinePath } from '../utils/Utils';
 
@@ -25,10 +24,6 @@ function mapStateToProps(state: AppState): SvgCanvasStateProps {
         svgStates: state.svg.svgStates,
         currentTime: state.svg.currentTime
     }
-}
-
-function setInitGsTransform(elm) {
-    TweenMax.fromTo(elm, 1, { x: 0 }, { x: 100 }).pause()
 }
 
 class SvgCanvas extends Component<SvgCanvasProps> {
@@ -57,7 +52,6 @@ class SvgCanvas extends Component<SvgCanvasProps> {
                 let initAttributes = initState.attributes
                 this.updateSvgAttributes(svg, initAttributes)
                 this.svgRoot.current.appendChild(svg);
-                setInitGsTransform(svg)
                 setTransform(svg, initState.transform)
             }
             else if (oldSvgStates.get(id) !== svgState) {

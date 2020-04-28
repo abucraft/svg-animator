@@ -22,6 +22,10 @@ type GSTransfrom = {
     z?: number
     zOrigin?: number
 }
+interface HTMLElement {
+    _gsTransform?: GSTransfrom
+}
+
 interface SVGElement {
     _gsTransform?: GSTransfrom
 }

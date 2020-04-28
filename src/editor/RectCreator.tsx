@@ -5,6 +5,7 @@ import { changeEditMode, createSvgNode } from '../core/Actions';
 import { connect } from 'react-redux';
 import { SvgEditorContext } from '../app/SvgEditorContext';
 import { clientPoint2SvgPoint } from './Utils';
+import { DefaultTransform } from '../utils/Utils';
 
 export type CreatorDispathProps = {
     onCreateSvgElement: (obj: SvgNode) => void
@@ -54,10 +55,10 @@ class RectCreator extends Component<CreatorProps> {
                 height: 100
             },
             transform: {
-                x: svgPoint.x,
-                y: svgPoint.y,
-                xOrigin: 0,
-                yOrigin: 0
+                ...DefaultTransform, ...{
+                    x: svgPoint.x,
+                    y: svgPoint.y
+                }
             },
         })
 

@@ -78,7 +78,6 @@ function updateSvgAttribute(state: SvgState, action: UpdateSvgAttributeAction): 
 }
 
 function editSvgText(state: SvgState = initialState, action: EditSvgAction) {
-    console.debug(state)
     let svgStates = state.svgStates
     let prevState = svgToJson(state.currentSvgText)
     let curState = svgToJson(action.value)

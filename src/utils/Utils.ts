@@ -79,7 +79,7 @@ export function setTransform(elm: SVGElement, transform: Transform) {
     elm.setAttribute('transform', apply(transformObj))
 }
 
-const DefaultTransform: Transform = {
+export const DefaultTransform: Transform = {
     x: 0,
     y: 0,
     rotation: 0,

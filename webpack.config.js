@@ -42,6 +42,7 @@ module.exports = function (webpackEnv) {
                         loader: 'ts-loader',
                         options: {
                             transpileOnly: true,
+                            experimentalWatchApi: true,
                             getCustomTransformers: () => ({
                                 before: [tsImportPluginFactory({
                                     libraryName: 'antd',
