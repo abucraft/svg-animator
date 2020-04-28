@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { createCircle } from './DragPoint';
-import { setAttributes, deepCopy, SVG_XMLNS, pointsToLinePath, setTransform } from '../../utils/Utils';
+import { setAttributes, deepCopy, SVG_XMLNS, pointsToLinePath, setTransform, getCenterRotateOrigin } from '../../utils/Utils';
 import { clientPoint2SvgPoint, unapplyTransform } from '../Utils';
 import { changeEditMode, updateSvgAttribute } from '../../core/Actions';
 import { connect } from 'react-redux';
@@ -83,8 +83,9 @@ class PathEditor extends Component<PathEditorProps, PathEditorState>{
     createPathCreation = () => {
         let selectedElementIds = this.props.selectedElementIds
         let initState = this.getInitState(this.props.svgStates, selectedElementIds[0])
+        let pathElm = this.props.svgRoot.getElementById(selectedElementIds[0]) as SVGPathElement
         this.pathCreation = new PathCreation(this.props.svgRoot,
-            this.props.svgRoot.getElementById(selectedElementIds[0]) as SVGPathElement,
+            pathElm,
             initState.transform,
             initState.attributes["d"], (pts) => {
                 this.props.updateSvgAttribute({
@@ -99,6 +100,9 @@ class PathEditor extends Component<PathEditorProps, PathEditorState>{
                     [this.props.selectedElementIds[0]]: {
                         attributes: {
                             d: pts
+                        },
+                        transform: {
+                            ...getCenterRotateOrigin(pathElm.getBBox(), 1, 1)
                         }
                     }
                 })

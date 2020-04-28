@@ -6,7 +6,7 @@ import classNames from 'classnames'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenNib } from '@fortawesome/free-solid-svg-icons/faPenNib'
 import { connect } from 'react-redux';
-import { SVG_XMLNS, deepCopy, pointsToLinePath, setAttributes, DefaultTransform } from '../utils/Utils';
+import { SVG_XMLNS, deepCopy, pointsToLinePath, setAttributes, DefaultTransform, getCenterRotateOrigin } from '../utils/Utils';
 import { createCircle } from './tools/DragPoint';
 import { clientPoint2SvgPoint } from './Utils';
 
