@@ -433,6 +433,25 @@ export function fromRotation(out, rad) {
   return out;
 }
 
+
+/**
+ * Create a rotation matrix for rotate around an origin
+ * @param {number} rad 
+ * @param {number} xOrigin 
+ * @param {number} yOrigin 
+ */
+export function fromRotationOrigin(rad, xOrigin, yOrigin){
+  let trans1 = new Array(9)
+  let rotate = new Array(9)
+  let trans2 = new Array(9)
+  fromTranslation(trans1, [xOrigin, yOrigin])
+  fromRotation(rotate, rad)
+  fromTranslation(trans2, [-xOrigin, -yOrigin])
+  multiply(rotate, trans1, rotate)
+  multiply(rotate, rotate, trans2)
+  return rotate
+}
+
 /**
  * Creates a matrix from a vector scaling
  * This is equivalent to (but much faster than):

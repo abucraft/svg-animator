@@ -67,7 +67,7 @@ function mapDispatchToProps(dispatch): TimelineDispatchProps {
     }
 }
 
-export const TweenAnimationFactory  = {
+export const TweenAnimationFactory = {
     createFrame: (target, duration, attr, frameValue: FrameValue, targetTime: number) => {
         let fromObj = { [attr]: frameValue.from }
         let toObj = { [attr]: frameValue.to }
@@ -169,7 +169,7 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                         transformStack["rotation"] = { time: curTime, value: toRotation }
                         transformStack["xOrigin"] = { time: curTime, value: toXOrigin }
                         transformStack["yOrigin"] = { time: curTime, value: toYOrigin }
-                        if (toRotation !== fromRotation) {
+                        if (toRotation !== fromRotation || fromXOrigin !== toXOrigin || fromYOrigin !== toYOrigin) {
                             let rotationAttr = "rotate(deg,x,y)"
                             let fromValue = {
                                 rotation: fromRotation,
@@ -195,7 +195,7 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                             })
                         }
                     }
-                    if(transform.scaleX || transform.scaleY){
+                    if (transform.scaleX || transform.scaleY) {
                         let fromScaleXObj = transformStack["scaleX"]
                         let fromScaleYObj = transformStack["scaleY"]
                         let fromScaleX = fromScaleXObj.value

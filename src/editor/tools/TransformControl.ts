@@ -1,9 +1,9 @@
-import { RectDragPoint, RotateLocation } from "./DragPoint";
+import { RectDragPoint, RotateLocation, transformRotateLocation } from "./DragPoint";
 import { dispatch } from "../../core/Store";
 import { updateSvgAttribute, selectSvgElement } from "../../core/Actions";
 import { getAttributes, setAttributes, setTransform, getTransform, getCenterRotateOrigin } from "../../utils/Utils";
 import { RotatePoint } from "./RotatePoint";
-import { fromRotation, degree2Rad, invert, multiplyVec3 } from "../../utils/mat3";
+import { fromRotation, degree2Rad, invert, multiplyVec3, transpose, fromRotationOrigin } from "../../utils/mat3";
 
 export class TransformControl {
     nwpoint: RectDragPoint
@@ -35,7 +35,7 @@ export class TransformControl {
         this.selectSvgElements = selectedElements
     }
 
-    onResizeElement = (location: RotateLocation) => (p: DeltaPoint2D) => {
+    onResizeElement = (_location: RotateLocation) => (p: DeltaPoint2D) => {
         let reverseMat = new Array(9)
         // rotation is reversed in calculation than svg element
         fromRotation(reverseMat, degree2Rad(-this.rotation))
@@ -44,6 +44,7 @@ export class TransformControl {
         multiplyVec3(targetVec, reverseMat, targetVec)
         let dx = targetVec[0]
         let dy = targetVec[1]
+        let location = _location// transformRotateLocation(_location, this.rotation)
         this.selectSvgElements.forEach(elm => {
             if (elm.nodeName === 'ellipse') {
                 let { rx, ry } = getAttributes(elm, { cx: 'number', cy: 'number', rx: 'number', ry: 'number' })
@@ -116,12 +117,26 @@ export class TransformControl {
                 let bottom = bbox.y + bbox.height
                 let newScaleX = 1
                 let newScaleY = 1
+                let v1, v2, rotateOrigin1, rotateOrigin2, rotateMat1, rotateMat2
                 switch (location) {
                     case 'nw':
                         newScaleX = ((realWidth - dx) / realWidth) * scaleX
                         newScaleY = ((realHeight - dy) / realHeight) * scaleY
-                        transformX = (bbox.x * scaleX + transformX + dx) - bbox.x * newScaleX
-                        transformY = (bbox.y * scaleY + transformY + dy) - bbox.y * newScaleY
+                        v1 = [bbox.x * scaleX, bbox.y * scaleY, 1]
+                        v2 = [bbox.x * newScaleX, bbox.y * newScaleY, 1]
+                        rotateOrigin1 = getCenterRotateOrigin(bbox, scaleX, scaleY)
+                        rotateOrigin2 = getCenterRotateOrigin(bbox, newScaleX, newScaleY)
+                        rotateMat1 = fromRotationOrigin(-degree2Rad(this.rotation), rotateOrigin1.xOrigin, rotateOrigin1.yOrigin)
+                        rotateMat2 = fromRotationOrigin(-degree2Rad(this.rotation), rotateOrigin2.xOrigin, rotateOrigin2.yOrigin)
+                        multiplyVec3(v1, rotateMat1, v1)
+                        multiplyVec3(v2, rotateMat2, v2)
+                        // console.log(dx)
+                        // console.log(p.dx)
+                        transformX = (v1[0] + transformX + p.dx) - v2[0]
+                        transformY = (v1[1] + transformY + p.dy) - v2[1]
+
+                        // transformX = (bbox.x * scaleX + transformX + dx) - bbox.x * newScaleX
+                        // transformY = (bbox.y * scaleY + transformY + dy) - bbox.y * newScaleY
                         break;
                     case 'ne':
                         newScaleX = ((realWidth + dx) / realWidth) * scaleX
@@ -155,7 +170,7 @@ export class TransformControl {
         this.selectSvgElements.forEach(elm => {
             let bbox = elm.getBBox()
             let transform = getTransform(elm)
-            setTransform(elm, { rotation: degree,...getCenterRotateOrigin(bbox, transform.scaleX, transform.scaleY) })
+            setTransform(elm, { rotation: degree, ...getCenterRotateOrigin(bbox, transform.scaleX, transform.scaleY) })
         })
         this.onResize()
     }
@@ -217,9 +232,13 @@ export class TransformControl {
         this.rotation = rotation
         let { center, nwPosition, nePosition, swPosition, sePosition } = this.getLocations()
         this.nwpoint.setPosition(nwPosition, center, rotation)
+        this.nwpoint.location = transformRotateLocation("nw", rotation)
         this.nepoint.setPosition(nePosition, center, rotation)
+        this.nepoint.location = transformRotateLocation("ne", rotation)
         this.swpoint.setPosition(swPosition, center, rotation)
+        this.swpoint.location = transformRotateLocation("sw", rotation)
         this.sepoint.setPosition(sePosition, center, rotation)
+        this.sepoint.location = transformRotateLocation("se", rotation)
         this.nwRotatePoint.setPosition(nwPosition, center, rotation)
         this.neRotatePoint.setPosition(nePosition, center, rotation)
         this.swRotatePoint.setPosition(swPosition, center, rotation)

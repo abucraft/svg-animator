@@ -3,6 +3,16 @@ import { fromRotation, degree2Rad, multiplyVec3 } from "../../utils/mat3";
 
 export type DragCursor = 'nw-resize' | 'ne-resize' | 'sw-resize' | 'se-resize'
 export type RotateLocation = 'nw' | 'ne' | 'sw' | 'se'
+
+
+// using degree to apply location
+export function transformRotateLocation(location: RotateLocation, rotation: number): RotateLocation {
+    const locationArray: RotateLocation[] = ["nw", "ne", "se", "sw"]
+    const startIndex = locationArray.indexOf(location)
+    const delta = Math.floor((rotation + 45) / 90)
+    const endIndex = (startIndex + delta) % 4;
+    return locationArray[endIndex]
+}
 export abstract class BasePoint {
     svgRoot: SVGSVGElement
     point: SVGElement
@@ -11,15 +21,25 @@ export abstract class BasePoint {
     degree: number
     center: Point2D
     pointSize = 4
-    location: RotateLocation
+    _location: RotateLocation
     constructor(
         svgRoot: SVGSVGElement,
         location: RotateLocation) {
-        this.location = location
+        this._location = location
         this.svgRoot = svgRoot
         this.point = this.createPoint()
         this.svgRoot.append(this.point)
     }
+
+    get location() {
+        return this._location
+    }
+
+    set location(newLoc: RotateLocation) {
+        this._location = newLoc
+        this.point.setAttribute("style", `cursor:${this._location}-resize;`)
+    }
+
     abstract createPoint(): SVGElement
 
     setPosition(position: Point2D, center: Point2D, degree: number): void {
@@ -118,7 +138,7 @@ export function createCircle(): SVGCircleElement {
 export class CircleDragPoint extends BaseDragPoint {
     createPoint(): SVGElement {
         var circle = createCircle()
-        circle.setAttribute("style", `cursor:${this.location}-resize;`)
+        circle.setAttribute("style", `cursor:${this._location}-resize;`)
         circle.setAttribute('r', this.pointSize.toString())
         return circle
     }
@@ -127,6 +147,6 @@ export class CircleDragPoint extends BaseDragPoint {
 
 export class RectDragPoint extends BaseDragPoint {
     createPoint(): SVGElement {
-        return domPaser.parseFromString(`<rect xmlns="${SVG_XMLNS}" style="cursor:${this.location}-resize;" x="${-this.pointSize}" y="${-this.pointSize}" width="${this.pointSize * 2}" height="${this.pointSize * 2}" stroke="black" stroke-width="0.5px" fill="white"/>`, "image/svg+xml").firstChild as any as SVGElement
+        return domPaser.parseFromString(`<rect xmlns="${SVG_XMLNS}" style="cursor:${this._location}-resize;" x="${-this.pointSize}" y="${-this.pointSize}" width="${this.pointSize * 2}" height="${this.pointSize * 2}" stroke="black" stroke-width="0.5px" fill="white"/>`, "image/svg+xml").firstChild as any as SVGElement
     }
 }

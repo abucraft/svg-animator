@@ -16,7 +16,7 @@ export class RotatePoint extends BasePoint {
     degree: number
     center: Point2D
     pointSize = 4
-    location: RotateLocation
+    _location: RotateLocation
     constructor(
         svgRoot: SVGSVGElement,
         svgEditorContext: SvgEditorContextType,
@@ -41,7 +41,7 @@ export class RotatePoint extends BasePoint {
         { x: 0 - this.pointSize, y: 0 - this.pointSize }]
         
         // In element local coordinate system, rotation is reversed
-        switch (this.location) {
+        switch (this._location) {
             case "ne":
                 points = this.rotatePoints(points, -90)
                 break;
