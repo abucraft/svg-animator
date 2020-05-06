@@ -1,4 +1,4 @@
-import { degree2Rad, invert, multiply, multiplyVec3, fromRotation } from "../utils/mat3";
+import { degree2Rad, invert, multiply, multiplyVec3, fromRotation, fromTranslation } from "../utils/mat3";
 
 export function svgPoint2ClientPoint(pt: Point2D, svg: SVGSVGElement) {
     let viewBox = svg.viewBox
@@ -48,27 +48,17 @@ export function unapplyTransform(pt: Point2D, transform: Transform) {
     let rotate = transform.rotation !== undefined ? transform.rotation : 0;
     let xOrigin = transform.xOrigin !== undefined ? transform.xOrigin : 0
     let yOrigin = transform.yOrigin !== undefined ? transform.yOrigin : 0
-    let reverseMat = [
-        1, 0, -xOrigin,
-        0, 1, -yOrigin,
-        0, 0, 1
-    ]
+    let translateMat = new Array(9)
+    fromTranslation(translateMat, [-xOrigin, -yOrigin])
     let rotateMat = new Array(9)
     fromRotation(rotateMat, degree2Rad(rotate))
-    multiply(rotateMat, rotateMat, reverseMat)
-    multiply(rotateMat,
-        [
-            1, 0, xOrigin,
-            0, 1, yOrigin,
-            0, 0, 1
-        ], rotateMat);
+    multiply(rotateMat, rotateMat, translateMat)
+    fromTranslation(translateMat, [xOrigin, yOrigin])
+    multiply(rotateMat, translateMat, rotateMat);
 
-    multiply(rotateMat,
-        [
-            1, 0, translateX,
-            0, 1, translateY,
-            0, 0, 1
-        ], rotateMat)
+    fromTranslation(translateMat, [translateX, translateY])
+
+    multiply(rotateMat, translateMat, rotateMat)
     // console.log("last mat", rotateMat)
 
     invert(rotateMat, rotateMat)

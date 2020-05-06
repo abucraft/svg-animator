@@ -43,13 +43,13 @@ export class RotatePoint extends BasePoint {
         // In element local coordinate system, rotation is reversed
         switch (this._location) {
             case "ne":
-                points = this.rotatePoints(points, -90)
+                points = this.rotatePoints(points, 90)
                 break;
             case "se":
-                points = this.rotatePoints(points, -180)
+                points = this.rotatePoints(points, 180)
                 break;
             case "sw":
-                points = this.rotatePoints(points, 90)
+                points = this.rotatePoints(points, 270)
                 break;
         }
         var path = domPaser.parseFromString(`<path xmlns="${SVG_XMLNS}" class="rotate-point" d="${pointsToLinePath(points)}" vector-effect="non-scaling-stroke" stroke="black" stroke-width="0.5px" fill="white"/>`, "image/svg+xml").firstChild as any as SVGElement

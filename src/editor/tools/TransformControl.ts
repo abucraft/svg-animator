@@ -3,7 +3,7 @@ import { dispatch } from "../../core/Store";
 import { updateSvgAttribute, selectSvgElement } from "../../core/Actions";
 import { getAttributes, setAttributes, setTransform, getTransform, getCenterRotateOrigin } from "../../utils/Utils";
 import { RotatePoint } from "./RotatePoint";
-import { fromRotation, degree2Rad, invert, multiplyVec3, transpose, fromRotationOrigin } from "../../utils/mat3";
+import { fromRotation, degree2Rad, invert, multiplyVec3, transpose, fromRotationOrigin, rotate } from "../../utils/mat3";
 
 export class TransformControl {
     nwpoint: RectDragPoint
@@ -37,8 +37,7 @@ export class TransformControl {
 
     onResizeElement = (_location: RotateLocation) => (p: DeltaPoint2D) => {
         let reverseMat = new Array(9)
-        // rotation is reversed in calculation than svg element
-        fromRotation(reverseMat, degree2Rad(-this.rotation))
+        fromRotation(reverseMat, degree2Rad(this.rotation))
         invert(reverseMat, reverseMat)
         let targetVec = [p.dx, p.dy, 1]
         multiplyVec3(targetVec, reverseMat, targetVec)
@@ -124,39 +123,34 @@ export class TransformControl {
                         newScaleY = ((realHeight - dy) / realHeight) * scaleY
                         v1 = [bbox.x * scaleX, bbox.y * scaleY, 1]
                         v2 = [bbox.x * newScaleX, bbox.y * newScaleY, 1]
-                        rotateOrigin1 = getCenterRotateOrigin(bbox, scaleX, scaleY)
-                        rotateOrigin2 = getCenterRotateOrigin(bbox, newScaleX, newScaleY)
-                        rotateMat1 = fromRotationOrigin(-degree2Rad(this.rotation), rotateOrigin1.xOrigin, rotateOrigin1.yOrigin)
-                        rotateMat2 = fromRotationOrigin(-degree2Rad(this.rotation), rotateOrigin2.xOrigin, rotateOrigin2.yOrigin)
-                        multiplyVec3(v1, rotateMat1, v1)
-                        multiplyVec3(v2, rotateMat2, v2)
-                        // console.log(dx)
-                        // console.log(p.dx)
-                        transformX = (v1[0] + transformX + p.dx) - v2[0]
-                        transformY = (v1[1] + transformY + p.dy) - v2[1]
-
-                        // transformX = (bbox.x * scaleX + transformX + dx) - bbox.x * newScaleX
-                        // transformY = (bbox.y * scaleY + transformY + dy) - bbox.y * newScaleY
                         break;
                     case 'ne':
                         newScaleX = ((realWidth + dx) / realWidth) * scaleX
                         newScaleY = ((realHeight - dy) / realHeight) * scaleY
-                        transformX = (right * scaleX + transformX + dx) - right * newScaleX
-                        transformY = (bbox.y * scaleY + transformY + dy) - bbox.y * newScaleY
+                        v1 = [right * scaleX, bbox.y * scaleY, 1]
+                        v2 = [right * newScaleX, bbox.y * newScaleY, 1]
                         break;
                     case "sw":
                         newScaleX = ((realWidth - dx) / realWidth) * scaleX
                         newScaleY = ((realHeight + dy) / realHeight) * scaleY
-                        transformX = (bbox.x * scaleX + transformX + dx) - bbox.x * newScaleX
-                        transformY = (bottom * scaleY + transformY + dy) - bottom * newScaleY
+                        v1 = [bbox.x * scaleX, bottom * scaleY, 1]
+                        v2 = [bbox.x * newScaleX, bottom * newScaleY, 1]
                         break;
                     case "se":
                         newScaleX = ((realWidth + dx) / realWidth) * scaleX
                         newScaleY = ((realHeight + dy) / realHeight) * scaleY
-                        transformX = (right * scaleX + transformX + dx) - right * newScaleX
-                        transformY = (bottom * scaleY + transformY + dy) - bottom * newScaleY
+                        v1 = [right * scaleX, bottom * scaleY, 1]
+                        v2 = [right * newScaleX, bottom * newScaleY, 1]
                         break;
                 }
+                rotateOrigin1 = getCenterRotateOrigin(bbox, scaleX, scaleY)
+                rotateOrigin2 = getCenterRotateOrigin(bbox, newScaleX, newScaleY)
+                rotateMat1 = fromRotationOrigin(degree2Rad(this.rotation), rotateOrigin1.xOrigin, rotateOrigin1.yOrigin)
+                rotateMat2 = fromRotationOrigin(degree2Rad(this.rotation), rotateOrigin2.xOrigin, rotateOrigin2.yOrigin)
+                multiplyVec3(v1, rotateMat1, v1)
+                multiplyVec3(v2, rotateMat2, v2)
+                transformX = (v1[0] + transformX + p.dx) - v2[0]
+                transformY = (v1[1] + transformY + p.dy) - v2[1]
                 let newTransform = { x: transformX, y: transformY, scaleX: newScaleX, scaleY: newScaleY, ...getCenterRotateOrigin(bbox, newScaleX, newScaleY) }
                 setTransform(elm, newTransform)
             }

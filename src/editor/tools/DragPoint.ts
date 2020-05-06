@@ -54,8 +54,7 @@ export abstract class BasePoint {
         // rotate position around center by degree
         let vec = [this.pointPosition.x - this.center.x, this.pointPosition.y - this.center.y, 1]
         let rotateMat = new Array(9);
-        // Rotation is reversed than svg transform attributes
-        fromRotation(rotateMat, degree2Rad(-this.degree))
+        fromRotation(rotateMat, degree2Rad(this.degree))
         multiplyVec3(vec, rotateMat, vec)
         return {
             x: this.center.x + vec[0],
