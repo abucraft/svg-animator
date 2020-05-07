@@ -74,7 +74,7 @@ module.exports = function (webpackEnv) {
         plugins: [
             new webpack.NamedModulesPlugin(),
             htmlPlugin,
-            new BundleAnalyzerPlugin()
+            ...(process.env.BUNDLE_ANALYZER ? [new BundleAnalyzerPlugin()] : [])
         ]
     }
 }
