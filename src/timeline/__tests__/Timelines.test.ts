@@ -1,8 +1,8 @@
-import { Timelines, TweenAnimationFactory } from '../Timelines'
-import { Map, List } from 'immutable'
+import { Timelines } from '../Timelines'
 import { SVG_XMLNS } from '../../utils/Utils';
+import { NoopAnimationFactory } from '../../exports/SvgExports';
 
-let testSvgState = Map<string, Map<number, any>>([['element1', Map([
+let testSvgState = new Map<string, Map<number, any>>([['element1', new Map([
     [0, {
         attributes: {
             cx: "100",
@@ -24,12 +24,12 @@ let testSvgState = Map<string, Map<number, any>>([['element1', Map([
         }
     }
     ]])]])
-let expectedSvgAnimations = Map({
-    'element1': Map({
-        "cx": Map<FrameKey, SvgAnimationFrame>([[List([0, 1]), { value: { from: '100', to: '220' } }]]),
-        "cy": Map<FrameKey, SvgAnimationFrame>([[List([0, 1]), { value: { from: '50', to: '367' } }]])
-    })
-})
+let expectedSvgAnimations: SvgAnimations = new Map([
+    ['element1', new Map([
+        ["cx", [[0, 1, { value: { from: '100', to: '220' } }]]],
+        ["cy", [[0, 1, { value: { from: '50', to: '367' } }]]]
+    ])]
+])
 
 var svg = document.createElementNS(SVG_XMLNS, "svg")
 var circle = document.createElementNS(SVG_XMLNS, "circle")
@@ -60,24 +60,24 @@ function svgAnimationEquals(source: SvgAnimations, target: SvgAnimations): boole
                 equal = false
                 return
             }
-            if (svv.size != tvv.size) {
+            if (svv.length != tvv.length) {
                 equal = false
                 return
             }
             svv.forEach((svvv, svvk) => {
                 if (!equal) return
-                var tvvv = tvv.get(svvk)
+                var tvvv = tvv[svvk]
                 if (tvvv == undefined) {
                     equal = false
                     return
                 }
-                equal = svvv.value.from === tvvv.value.from && svvv.value.to === tvvv.value.to
+                equal = svvv[0]=== tvvv[0] && svvv[1] === tvvv[1] && svvv[2].value.from === tvvv[2].value.from && svvv[2].value.to === tvvv[2].value.to
             })
         })
     })
     return equal
 }
 it("should success", () => {
-    var animations = Timelines.buildAnimationsFromState(testSvgState, Map(), 1)
+    var animations = Timelines.buildAnimationsFromState(testSvgState, new Map(), 1, NoopAnimationFactory)
     expect(svgAnimationEquals(animations, expectedSvgAnimations)).toBe(true);
 })

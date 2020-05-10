@@ -1,5 +1,3 @@
-import { Map } from 'immutable'
-import { Point } from 'unist';
 declare global {
     type AttrValueType = 'number' | 'string'
 
@@ -28,19 +26,20 @@ export const deepCopy = function <T>(obj: T): T {
 }
 
 export function getAttributes<T extends { [key: string]: AttrValueType }>(elm: SVGElement, schema: T): { [k in keyof T]: any } {
-    return Map(schema).map((s, key) => {
+    return Object.fromEntries(Object.entries(schema).map(([key, s]) => {
         let strValue = elm.getAttribute(key as any)
+        let value = strValue;
         switch (s) {
             case 'number':
-                return parseFloat(strValue) as any
-            case 'string':
-                return strValue as any
+                value = parseFloat(strValue) as any
+                break;
         }
-    }).toObject() as any
+        return [key, value]
+    }))
 }
 
 export function setAttributes(elm: SVGElement, attrs: { [key: string]: any }) {
-    Map(attrs).forEach((v, k) => {
+    Object.entries(attrs).forEach(([k, v]) => {
         elm.setAttribute(k, v.toString())
     })
 }
@@ -57,7 +56,7 @@ function parse(str: string): { [key: string]: string[] } {
 
 function apply(value: { [key: string]: string[] }): string {
     var res = ""
-    Map(value).forEach((v, k) => {
+    Object.entries(value).forEach(([k, v]) => {
         res += `${k}(${v.join(' ')}) `
     })
     return res;

@@ -3,7 +3,6 @@ import * as React from 'react'
 import { compose } from 'redux'
 import { connect } from 'react-redux'
 import { SizedComponent } from '../utils/SizedComponent'
-import { Map } from 'immutable'
 import { SvgEditorContext } from '../app/SvgEditorContext';
 import { setTransform, SVG_XMLNS, pointsToLinePath } from '../utils/Utils';
 
@@ -46,8 +45,9 @@ class SvgCanvas extends Component<SvgCanvasProps> {
         });
         newSvgStates.forEach((svgState, id) => {
             if (oldSvgStates.get(id) === undefined) {
-                let keys = svgState.keySeq().sort((v1, v2) => v1 - v2)
-                let initState = svgState.get(keys.get(0));
+                let keys = [...svgState.keys()]
+                keys.sort((v1, v2) => v1 - v2)
+                let initState = svgState.get(keys[0]);
                 let svg = document.createElementNS(SVG_XMLNS, initState.nodeName)
                 let initAttributes = initState.attributes
                 this.updateSvgAttributes(svg, initAttributes)
@@ -56,11 +56,13 @@ class SvgCanvas extends Component<SvgCanvasProps> {
             }
             else if (oldSvgStates.get(id) !== svgState) {
                 // check init svg state
-                let keys = svgState.keySeq().sort((v1, v2) => v1 - v2)
-                let initState = svgState.get(keys.get(0));
+                let keys = [...svgState.keys()]
+                keys.sort((v1, v2) => v1 - v2)
+                let initState = svgState.get(keys[0]);
                 let oldSvgState = oldSvgStates.get(id)
-                let oldKeys = oldSvgState.keySeq().sort((v1, v2) => v1 - v2)
-                let oldInitState = oldSvgState.get(oldKeys.get(0))
+                let oldKeys = [...oldSvgState.keys()]
+                oldKeys.sort((v1, v2) => v1 - v2)
+                let oldInitState = oldSvgState.get(oldKeys[0])
                 if (initState !== oldInitState) {
                     let svg = this.svgRoot.current.getElementById(id)
                     this.updateSvgAttributes(svg as SVGElement, initState.attributes)
@@ -80,7 +82,7 @@ class SvgCanvas extends Component<SvgCanvasProps> {
     }
 
     componentDidMount() {
-        this.updateSvgElements(Map(), this.props.svgStates)
+        this.updateSvgElements(new Map(), this.props.svgStates)
         this.context.svgCreatedSignal.next(this.svgRoot.current);
     }
 

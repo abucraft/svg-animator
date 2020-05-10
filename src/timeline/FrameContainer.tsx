@@ -1,7 +1,6 @@
 
 import { Component, RefObject } from 'react'
 import * as React from 'react'
-import { Map } from 'immutable'
 import PlayStopButton from './PlayStopButton'
 import FrameHolder from './FrameHolder'
 import TimeRuler from './TimeRuler'
@@ -27,12 +26,6 @@ export default class FrameContainer extends Component<FrameContainerProps> {
     constructor(props) {
         super(props)
         this.containerRef = React.createRef()
-    }
-
-    groupByProps(svgAnimations: SvgAnimations) {
-        svgAnimations.map((framesMap) => {
-
-        })
     }
 
     onTimelineMove = (position: number) => {
@@ -88,39 +81,39 @@ export default class FrameContainer extends Component<FrameContainerProps> {
 
 class FrameMetaList extends React.PureComponent<{ animations: SvgAnimations }>{
     render() {
-        return this.props.animations.map((animations, id) => {
+        return [...this.props.animations.entries()].map(([id, animations]) => {
             return (<div key={id}>
                 <div className="frame-meta">{id}</div>
                 {
-                    animations.map((attrAnimations, attr) => {
+                    [...animations.entries()].map(([attr, attrAnimations]) => {
                         return (<div className="frame-meta" key={attr}>{attr}</div>)
-                    }).toList()
+                    })
                 }
             </div>)
-        }).toList()
+        })
     }
 }
 
 class FrameList extends React.PureComponent<{ time2Position: (time: number) => number, animations: SvgAnimations }>{
     render() {
-        return this.props.animations.map((animations, id) => {
+        return [...this.props.animations.entries()].map(([id, animations]) => {
             return (<div key={id}>
                 <div className="frame-meta"></div>
                 {
-                    animations.map((attrAnimations, attr) => {
+                    [...animations.entries()].map(([attr, attrAnimations]) => {
                         return (<div key={attr} className="frame-wrapper">
                             {
-                                attrAnimations.map((animation, frameKey) => {
-                                    let left = this.props.time2Position(frameKey.get(0))
-                                    let right = this.props.time2Position(frameKey.get(1))
-                                    return (< FrameHolder key={`${frameKey.get(0)},${frameKey.get(1)}`} left={left} width={right - left} attribute={attr} />)
-                                }).toList()
+                                attrAnimations.map((frame) => {
+                                    let left = this.props.time2Position(frame[0])
+                                    let right = this.props.time2Position(frame[1])
+                                    return (< FrameHolder key={`${frame[0]},${frame[1]}`} left={left} width={right - left} attribute={attr} />)
+                                })
                             }
                         </div>)
-                    }).toList()
+                    })
                 }
             </div>)
-        }).toArray()
+        })
     }
 
     rerenderFrames = () => { this.forceUpdate() }

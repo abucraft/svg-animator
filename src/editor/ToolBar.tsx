@@ -3,7 +3,6 @@ import * as React from 'react'
 import { ConnectedSelector, SelectorName } from './Selector'
 import './ToolBar.less'
 import { SvgEditorContext } from '../app/SvgEditorContext';
-import { OrderedMap } from 'immutable';
 import Editors from './Editors'
 import { RectCreatorName, ConnectedRectCreator } from './RectCreator';
 import { Subscription } from 'rxjs';
@@ -14,7 +13,7 @@ declare global {
     interface ToolBarState {
         svgRoot: SVGSVGElement
         activeToolName: string
-        tools: OrderedMap<string, ComponentClass<ToolBaseProps>>
+        tools: Map<string, ComponentClass<ToolBaseProps>>
     }
 }
 
@@ -30,12 +29,12 @@ export default class ToolBar extends Component<any, ToolBarState> {
         this.state = {
             svgRoot: null,
             activeToolName: SelectorName,
-            tools: OrderedMap({
-                [SelectorName]: ConnectedSelector,
-                [RectCreatorName]: ConnectedRectCreator,
-                [EllipseCreatorName]: ConnectedEllipseCreator,
-                [PathCreatorName]: PathCreatorConnected
-            })
+            tools: new Map<string, ComponentClass<ToolBaseProps>>([
+                [SelectorName, ConnectedSelector],
+                [RectCreatorName, ConnectedRectCreator],
+                [EllipseCreatorName, ConnectedEllipseCreator],
+                [PathCreatorName, PathCreatorConnected]
+            ])
         }
     }
 
@@ -67,8 +66,8 @@ export default class ToolBar extends Component<any, ToolBarState> {
     render() {
         return (
             this.state.svgRoot && <div className="tool-bar" style={{ paddingTop: "70px", alignSelf: "stretch", display: "flex", flexDirection: 'column' }}>
-                {this.state.tools.map((Tool, name) =>
-                    <Tool key={name} svgRoot={this.state.svgRoot} active={this.isToolActive(name)} onSelect={this.onToolSelect} onDeselect={this.onToolDeselect} />).valueSeq().toArray()}
+                {[...this.state.tools.entries()].map(([name, Tool]) =>
+                    <Tool key={name} svgRoot={this.state.svgRoot} active={this.isToolActive(name)} onSelect={this.onToolSelect} onDeselect={this.onToolDeselect} />)}
                 <Editors svgRoot={this.state.svgRoot} />
             </div>
         )

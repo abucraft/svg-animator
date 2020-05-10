@@ -2,8 +2,6 @@ import { Component } from 'react'
 import * as React from 'react'
 import { connect } from 'react-redux'
 
-import { Map, List } from 'immutable'
-
 import { compose } from 'redux';
 
 import FrameContainer from './FrameContainer'
@@ -12,6 +10,7 @@ import { SizedComponent } from '../utils/SizedComponent'
 import { SvgEditorContext } from '../app/SvgEditorContext';
 import { DefaultTransform } from '../utils/Utils';
 import { Tween } from '../animation/Tween';
+import produce from 'immer';
 
 declare global {
 
@@ -32,23 +31,28 @@ declare global {
         to: any
     }
 
-    type FrameKey = List<number>
-
     type SvgAnimationFrame = {
-        type?: "translate" | "rotate" | "attributes"
+        type?: "translate" | "rotate" | "attributes" | "scale"
         value: FrameValue
-        tweenLite: Tween
+        tweenLite?: Tween
         target?: any
     }
 
-    // {id: {attribute: { frame: value }}}
-    type SvgAnimations = Map<string, Map<string, Map<FrameKey, SvgAnimationFrame>>>
+    type Frame = [number, number, SvgAnimationFrame]
+
+    // {id: {attribute: frame[]}}
+    type SvgAnimations = Map<string, Map<string, Frame[]>>
 
     interface TimelineState {
         svgAnimations: SvgAnimations
         innerTime: number
         start: number
         scale: number
+    }
+
+    interface AnimationFactory {
+        createFrame: (target, duration, attr, frameValue: FrameValue, targetTime: number) => Tween
+        createTransformFrame: (target, duration, fromTransform: Transform, toTransform: Transform, targetTime: number) => Tween
     }
 };
 function mapStateToProps(state: AppState): TimelineStateProps {
@@ -67,7 +71,7 @@ function mapDispatchToProps(dispatch): TimelineDispatchProps {
     }
 }
 
-export const TweenAnimationFactory = {
+export const TweenAnimationFactory: AnimationFactory = {
     createFrame: (target, duration, attr, frameValue: FrameValue, targetTime: number) => {
         let fromObj = { [attr]: frameValue.from }
         let toObj = { [attr]: frameValue.to }
@@ -103,25 +107,27 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
     constructor(props) {
         super(props)
         this.state = {
-            svgAnimations: Map(),
+            svgAnimations: new Map(),
             start: 0,
             scale: 1,
             innerTime: this.props.currentTime
         }
     }
 
-    static buildAnimationsFromState(svgStates: SvgStateMap, existsAnimations: SvgAnimations, currentTime: number): SvgAnimations {
+    static buildAnimationsFromState(svgStates: SvgStateMap, existsAnimations: SvgAnimations, currentTime: number, animationFactory: AnimationFactory): SvgAnimations {
         // Recreate the animation frames every time, don't consider the time cost(it's very small currently)
-        let svgAnimations: SvgAnimations = Map()
+        // TODO: write an more efficient way for creating the frames
+        let svgAnimations: SvgAnimations = new Map()
         svgStates.forEach((svgState, id) => {
-            let keys = svgState.keySeq().sort((v1, v2) => v1 - v2)
-            let prevTime = keys.get(0)
+            let keys = [...svgState.keys()]
+            keys.sort((v1, v2) => v1 - v2)
+            let prevTime = keys[0]
             let initState = svgState.get(prevTime)
             let stateStack: { [key: string]: TimeAndValue } = {}
             let transformStack: { [key: string]: TimeAndValue } = setUpInitTransformStack(initState.transform)
-            let singleSvgAnimations = Map<string, Map<FrameKey, SvgAnimationFrame>>()
-            for (let i = 1; i < keys.count(); i++) {
-                let curTime = keys.get(i)
+            let singleSvgAnimations = new Map<string, Frame[]>()
+            for (let i = 1; i < keys.length; i++) {
+                let curTime = keys[i]
                 let state = svgState.get(curTime)
                 // console.log("state in timeline", state)
                 if (state.transform) {
@@ -147,15 +153,15 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                                 y: toY
                             }
                             if (singleSvgAnimations.get(translateAttr) === undefined)
-                                singleSvgAnimations = singleSvgAnimations.set(translateAttr, Map());
-                            singleSvgAnimations = singleSvgAnimations.setIn([translateAttr, List([startTime, curTime])], {
+                                singleSvgAnimations.set(translateAttr, []);
+                            singleSvgAnimations.get(translateAttr).push([startTime, curTime, {
                                 type: "translate",
                                 value: {
                                     from: fromValue,
                                     to: toValue
                                 },
-                                tweenLite: TweenAnimationFactory.createTransformFrame(document.getElementById(initState.attributes.id), curTime - startTime, fromValue, toValue, currentTime - startTime)
-                            })
+                                tweenLite: animationFactory.createTransformFrame(document.getElementById(initState.attributes.id), curTime - startTime, fromValue, toValue, currentTime - startTime)
+                            }])
                         }
                     }
                     if (transform.rotation || transform.xOrigin || transform.yOrigin) {
@@ -183,16 +189,16 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                             }
                             let target = document.getElementById(initState.attributes.id)
                             if (singleSvgAnimations.get(rotationAttr) === undefined)
-                                singleSvgAnimations = singleSvgAnimations.set(rotationAttr, Map());
-                            singleSvgAnimations = singleSvgAnimations.setIn([rotationAttr, List([startTime, curTime])], {
+                                singleSvgAnimations.set(rotationAttr, []);
+                            singleSvgAnimations.get(rotationAttr).push([startTime, curTime, {
                                 type: "rotate",
                                 value: {
                                     from: fromValue,
                                     to: toValue
                                 },
                                 target: target,
-                                tweenLite: TweenAnimationFactory.createTransformFrame(target, curTime - startTime, fromValue, toValue, currentTime - startTime)
-                            })
+                                tweenLite: animationFactory.createTransformFrame(target, curTime - startTime, fromValue, toValue, currentTime - startTime)
+                            }])
                         }
                     }
                     if (transform.scaleX || transform.scaleY) {
@@ -216,15 +222,15 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                                 scaleY: toY
                             }
                             if (singleSvgAnimations.get(scaleAttr) === undefined)
-                                singleSvgAnimations = singleSvgAnimations.set(scaleAttr, Map());
-                            singleSvgAnimations = singleSvgAnimations.setIn([scaleAttr, List([startTime, curTime])], {
+                                singleSvgAnimations.set(scaleAttr, []);
+                            singleSvgAnimations.get(scaleAttr).push([startTime, curTime, {
                                 type: "scale",
                                 value: {
                                     from: fromValue,
                                     to: toValue
                                 },
-                                tweenLite: TweenAnimationFactory.createTransformFrame(document.getElementById(initState.attributes.id), curTime - startTime, fromValue, toValue, currentTime - startTime)
-                            })
+                                tweenLite: animationFactory.createTransformFrame(document.getElementById(initState.attributes.id), curTime - startTime, fromValue, toValue, currentTime - startTime)
+                            }])
                         }
                     }
                 }
@@ -246,24 +252,15 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                         }
                         // no need to update animation
                         if (fromValue == toValue) continue
-                        let frameKey = List([localPrevTime, curTime])
-                        let animation, changed
-                        if ((animation = svgAnimations.getIn([id, attr, frameKey])) !== undefined) {
-                            changed = animation.from !== fromValue || animation.to !== toValue
-                        } else {
-                            changed = true
-                            animation = { from: fromValue, to: toValue }
-                        }
+                        let animation = { from: fromValue, to: toValue }
                         // If attr's animations map is not initialized, initialize it
                         if (singleSvgAnimations.get(attr) === undefined)
-                            singleSvgAnimations = singleSvgAnimations.set(attr, Map());
-                        if (changed) {
-                            singleSvgAnimations = singleSvgAnimations.setIn([attr, frameKey], {
-                                type: "attributes",
-                                value: animation,
-                                tweenLite: TweenAnimationFactory.createFrame(document.getElementById(initState.attributes.id), curTime - localPrevTime, attr, { from: fromValue, to: toValue }, currentTime - frameKey.get(0))
-                            })
-                        }
+                            singleSvgAnimations.set(attr, []);
+                        singleSvgAnimations.get(attr).push([localPrevTime, curTime, {
+                            type: "attributes",
+                            value: animation,
+                            tweenLite: animationFactory.createFrame(document.getElementById(initState.attributes.id), curTime - localPrevTime, attr, { from: fromValue, to: toValue }, currentTime - localPrevTime)
+                        }])
                     }
                 }
             }
@@ -273,7 +270,7 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
     }
 
     static buildState(props: TimelineProps, componentState: TimelineState): TimelineState {
-        let svgAnimations = Timelines.buildAnimationsFromState(props.svgStates, componentState.svgAnimations, props.currentTime)
+        let svgAnimations = Timelines.buildAnimationsFromState(props.svgStates, componentState.svgAnimations, props.currentTime, TweenAnimationFactory)
         let nextState = {
             ...componentState,
             svgAnimations: svgAnimations,
@@ -286,10 +283,10 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
         // TODO: fix the order when playing transform animation
         this.state.svgAnimations.forEach((animations) => {
             animations.forEach((attrAnimations, attr) => {
-                attrAnimations.forEach((animation, frameKey) => {
-                    let timegap = time - frameKey.get(0)
+                attrAnimations.forEach((animation) => {
+                    let timegap = time - animation[0]
                     if (timegap > 0) {
-                        animation.tweenLite.seek(timegap);
+                        animation[2].tweenLite.seek(timegap);
                     }
                 })
             })

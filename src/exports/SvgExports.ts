@@ -1,22 +1,20 @@
 import { Timelines } from "../timeline/Timelines";
-import { Map } from "immutable";
-import { animationFrame } from "rxjs/internal/scheduler/animationFrame";
 import { SVG_XMLNS } from "../utils/Utils";
 
 
 export const NoopAnimationFactory: AnimationFactory = {
     createFrame: () => null,
-    createTransformFrame: () => null,
-    createTransformOriginFrame: () => null
+    createTransformFrame: () => null
 }
 
 export function exportToSvgString(svgStates: SvgStateMap): string {
     let svgStr = ""
 
-    let animations = Timelines.buildAnimationsFromState(svgStates, Map(), 0, NoopAnimationFactory)
+    let animations = Timelines.buildAnimationsFromState(svgStates, new Map(), 0, NoopAnimationFactory)
     svgStates.forEach((svgState, id) => {
-        let keys = svgState.keySeq().sort((v1, v2) => v1 - v2)
-        let initState = svgState.get(keys.get(0));
+        let keys = [...svgState.keys()]
+        keys.sort((v1, v2) => v1 - v2)
+        let initState = svgState.get(keys[0]);
         let svg = `<${initState.nodeName}`
         Object.keys(initState.attributes).forEach(key => {
             svg += ` ${key}="${initState.attributes[key]}"`
@@ -25,9 +23,10 @@ export function exportToSvgString(svgStates: SvgStateMap): string {
         let anime = animations.get(id)
         if (anime) {
             anime.forEach((animeFrames, attr) => {
-                animeFrames.forEach((animeFrame, frameKey) => {
+                animeFrames.forEach((frame) => {
+                    let animeFrame = frame[2]
                     if (animeFrame.type === "attributes") {
-                        svg += `<animate attributeType="XML" attributeName="${attr}" from="${animeFrame.value.from}" to="${animeFrame.value.to}" begin="${frameKey.get(0)}s" dur="${frameKey.get(1) - frameKey.get(0)}s"/>`
+                        svg += `<animate attributeType="XML" attributeName="${attr}" from="${animeFrame.value.from}" to="${animeFrame.value.to}" begin="${frame[0]}s" dur="${frame[1] - frame[0]}s"/>`
                     } else if (animeFrame.type === "rotate") {
                         let fromValue = animeFrame.value.from
                         let toValue = animeFrame.value.to
@@ -36,8 +35,8 @@ export function exportToSvgString(svgStates: SvgStateMap): string {
                                                 type="rotate"
                                                 from="${fromValue.rotation} ${fromValue.xOrigin} ${fromValue.yOrigin}"
                                                 to="${toValue.rotation} ${toValue.xOrigin} ${toValue.yOrigin}"
-                                                begin="${frameKey.get(0)}s"
-                                                dur="${frameKey.get(1) - frameKey.get(0)}s"
+                                                begin="${frame[0]}s"
+                                                dur="${frame[1] - frame[0]}s"
                                                 additive="sum"/>`
                     } else if (animeFrame.type === "translate") {
                         let fromValue = animeFrame.value.from
@@ -47,8 +46,8 @@ export function exportToSvgString(svgStates: SvgStateMap): string {
                                                 type="translate"
                                                 from="${fromValue.x} ${fromValue.y}"
                                                 to="${toValue.x} ${toValue.y}"
-                                                begin="${frameKey.get(0)}s"
-                                                dur="${frameKey.get(1) - frameKey.get(0)}s"
+                                                begin="${frame[0]}s"
+                                                dur="${frame[1] - frame[0]}s"
                                                 additive="sum"/>`
                     }
                 })

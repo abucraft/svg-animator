@@ -3,8 +3,10 @@ import { Subject, BehaviorSubject } from 'rxjs'
 import { createStore, combineReducers, applyMiddleware, Store } from 'redux'
 import { EDIT_SVG_TEXT, MOVE_TIMELINE, ADD_ALERT, CLEAR_ALERT, addAlert, SELECT_SVG_ELEMENT, DESELECT_SVG_ELEMENT_ALL, UPDATE_SVG_ATTRIBUTE, CHANGE_EDIT_MODE, CREATE_SVG_NODE } from './Actions'
 import { svgToJson, initialSvg, nodeToJson, copySvgFields, compareSvgFields, svgJsonToText } from './SVGJson'
-import { Map } from 'immutable'
 import { onErrorResumeNext } from 'rxjs';
+import { composeWithDevTools } from 'redux-devtools-extension'
+import produce from 'immer';
+
 declare global {
     type SvgEditMode = 'select' | 'path-editing' | 'path-creating' | 'creating'
     type SvgStateMap = Map<string, Map<number, SvgNode>>
@@ -36,7 +38,7 @@ initSvgJson.attributes.id = getElementId()
 
 const initialState: SvgState = {
     editMode: 'select',
-    svgStates: Map([[getElementId(), Map([[0, initSvgJson]])]]),
+    svgStates: new Map([[getElementId(), new Map([[0, initSvgJson]])]]),
     selectedElementIds: [getElementId()],
     currentTime: 0,
     totalTime: 3,
@@ -62,34 +64,33 @@ function deselectSvgElementAll(state: SvgState, action: Action): SvgState {
 }
 
 function updateSvgAttribute(state: SvgState, action: UpdateSvgAttributeAction): SvgState {
-    let attributesMap = action.value;
-    let currentTime = state.currentTime;
-    let svgStates = state.svgStates;
-    Map(attributesMap).forEach((v, id) => {
-        let svgState = svgStates.get(id);
-        let oldAttrAndTransform = svgState.get(currentTime)
-        let nowState: SvgNode = (oldAttrAndTransform && { ...oldAttrAndTransform }) || { attributes: {}, transform: {} };
-        nowState.attributes = { ...nowState.attributes, ...v.attributes };
-        nowState.transform = { ...nowState.transform, ...v.transform }
-        let newTimeStates = svgState.set(currentTime, nowState);
-        svgStates = svgStates.set(id, newTimeStates);
-    });
-    return { ...state, svgStates: svgStates, currentSvgText: svgJsonToText(nodeToJson(document.getElementById(state.selectedElementIds[0]))) }
+    return produce(state, draftState => {
+        let attributesMap = action.value;
+        let currentTime = draftState.currentTime;
+        let svgStates = draftState.svgStates;
+        Object.entries(attributesMap).forEach(([id, v]) => {
+            let svgState = svgStates.get(id);
+            let oldAttrAndTransform = svgState.get(currentTime)
+            let nowState: SvgNode = oldAttrAndTransform || { attributes: {}, transform: {} };
+            Object.assign(nowState.attributes, v.attributes)
+            Object.assign(nowState.transform, v.transform)
+            svgState.set(currentTime, nowState);
+        });
+    })
 }
 
 function editSvgText(state: SvgState = initialState, action: EditSvgAction) {
-    let svgStates = state.svgStates
-    let prevState = svgToJson(state.currentSvgText)
-    let curState = svgToJson(action.value)
-    let newTimeStates;
-    let id = state.selectedElementIds[0];
-    let svgState = state.svgStates.get(id);
-    if (state.currentTime == 0 || svgState.get(0) == null) {
-        newTimeStates = svgStates.set(id, svgState.set(0, curState));
-    } else {
-        newTimeStates = svgStates.set(id, svgState.set(state.currentTime, compareSvgFields(prevState, curState)))
-    }
-    return { ...state, svgStates: newTimeStates, currentSvgText: action.value }
+    return produce(state, draft=>{
+        let prevState = svgToJson(draft.currentSvgText)
+        let curState = svgToJson(action.value)
+        let id = draft.selectedElementIds[0];
+        let svgState = draft.svgStates.get(id);
+        if (draft.currentTime == 0 || svgState.get(0) == null) {
+            svgState.set(0, curState);
+        } else {
+            svgState.set(draft.currentTime, compareSvgFields(prevState, curState))
+        }
+    })
 }
 
 
@@ -105,11 +106,14 @@ function alertReducer(state, action: AddAlertAction) {
 }
 
 function moveTimeline(state: SvgState, action): SvgState {
-    let text = "";
-    if (state.selectedElementIds.length > 0) {
-        text = svgJsonToText(nodeToJson(document.getElementById(state.selectedElementIds[0])))
-    }
-    return { ...state, currentTime: action.value, currentSvgText: text }
+    return produce(state, draft=>{
+        let text = "";
+        if (draft.selectedElementIds.length > 0) {
+            text = svgJsonToText(nodeToJson(document.getElementById(draft.selectedElementIds[0])))
+        }
+        draft.currentTime = action.value
+        draft.currentSvgText = text
+    })
 }
 
 function svgEditMode(state: SvgState, action: ChangeEditModeAction): SvgState {
@@ -117,14 +121,16 @@ function svgEditMode(state: SvgState, action: ChangeEditModeAction): SvgState {
 }
 
 function handleCreateSvgNode(state: SvgState, action: CreateSvgNodeAction): SvgState {
-    elementIncreamentalId += 1
-    action.value.attributes.id = getElementId()
-    let newMap = state.svgStates.set(getElementId(), Map([[0, action.value]]))
-    let selectedIds = state.selectedElementIds
-    if (action.value.nodeName == "path") {
-        selectedIds = [action.value.attributes.id]
-    }
-    return { ...state, svgStates: newMap, selectedElementIds: selectedIds }
+    return produce(state, draft=>{
+        elementIncreamentalId += 1
+        action.value.attributes.id = getElementId()
+        draft.svgStates.set(getElementId(), new Map([[0, action.value]]))
+        let selectedIds = draft.selectedElementIds
+        if (action.value.nodeName == "path") {
+            selectedIds = [action.value.attributes.id]
+        }
+        draft.selectedElementIds = selectedIds
+    })
 }
 
 const errorAlerter = store => next => action => {
@@ -136,10 +142,8 @@ const errorAlerter = store => next => action => {
     }
 }
 
-import { composeWithDevTools } from 'redux-devtools-extension'
-
 const store: Store = createStore(combineReducers({
-    alert: alertReducer, svg: combineActionReducers(Map([
+    alert: alertReducer, svg: combineActionReducers(new Map([
         [EDIT_SVG_TEXT, editSvgText],
         [MOVE_TIMELINE, moveTimeline],
         [SELECT_SVG_ELEMENT, selectSvgElement],

@@ -75,8 +75,9 @@ class PathEditor extends Component<PathEditorProps, PathEditorState>{
 
     getInitState(svgStates: SvgStateMap, id: string) {
         let state = svgStates.get(id)
-        let keys = state.keySeq().sort((v1, v2) => v1 - v2)
-        return state.get(keys.get(0))
+        let keys = [...state.keys()]
+        keys.sort((v1, v2) => v1 - v2)
+        return state.get(keys[0])
     }
 
 
