@@ -9,12 +9,10 @@ import { Subscription } from 'rxjs';
 import { EllipseCreatorName, ConnectedEllipseCreator } from './EllipseCreator';
 import { PathCreatorName, PathCreatorConnected } from './PathCreator';
 
-declare global {
-    interface ToolBarState {
-        svgRoot: SVGSVGElement
-        activeToolName: string
-        tools: Map<string, React.ComponentType<ToolBaseProps>>
-    }
+interface ToolBarState {
+    svgRoot: SVGSVGElement
+    activeToolName: string
+    tools: Map<string, React.ComponentType<ToolBaseProps>>
 }
 
 

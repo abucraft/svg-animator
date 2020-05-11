@@ -13,8 +13,8 @@ declare global {
     }
 }
 
-export function SizedComponent<C extends React.ComponentType<Matching<SizedComponentState, GetProps<C>>>>(WrappedComponent: C): React.ComponentType<Omit<GetProps<C>, keyof Shared<SizedComponentState, GetProps<C>>> & SizedComponentProps> {
-    return class SizedWrapperComponent extends Component<Omit<GetProps<C>, keyof Shared<SizedComponentState, GetProps<C>>> & SizedComponentProps> {
+export function SizedComponent<C extends HighOrderWrappedComponentType<SizedComponentState, C>>(WrappedComponent: C): React.ComponentType<Omit<GetProps<C>, keyof Shared<SizedComponentState, GetProps<C>>> & SizedComponentProps> {
+    return class SizedWrapperComponent extends Component<HighOrderExposedComponentProps<SizedComponentState, C> & SizedComponentProps> {
         state: SizedComponentState
         wrapper: RefObject<HTMLDivElement>
         props: any

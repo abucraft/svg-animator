@@ -46,3 +46,7 @@ type Matching<InjectedProps, DecorationTargetProps> = {
     : InjectedProps[P]
     : DecorationTargetProps[P];
 };
+
+type HighOrderWrappedComponentType<InjectedProps, C> = React.ComponentType<Matching<InjectedProps, GetProps<C>>>
+
+type HighOrderExposedComponentProps<InjectedProps, C> = Omit<GetProps<C>, keyof Shared<InjectedProps, GetProps<C>>>

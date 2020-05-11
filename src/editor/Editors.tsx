@@ -3,30 +3,26 @@ import * as React from 'react'
 import { connect } from 'react-redux'
 import SelectedBox from './tools/SelectedBox'
 import { PathEditorConnected } from './tools/PathEditor';
+import { WithSvgEditorContext } from '../app/SvgEditorContext';
+import { EditorToolContextType, EditorToolContext } from './EditorToolContext'
 
 type EditorsProps = {
     svgRoot: SVGSVGElement
 }
 
-type EditorsPropsFromState = {
-    editMode: SvgEditMode
-}
-
-type EditorsFullProps = EditorsProps & EditorsPropsFromState
-
-function mapStateToProps(state: AppState, props: EditorsProps): EditorsPropsFromState {
-    return {
-        editMode: state.svg.editMode
-    }
-}
+type EditorsFullProps = EditorsProps & SvgEditorContextComponentProps
 
 class Editors extends Component<EditorsFullProps> {
     constructor(props) {
         super(props)
     }
 
-    render() {
-        switch (this.props.editMode) {
+    editorToolContext: EditorToolContextType = {
+        eventLocked: false
+    }
+
+    renderTool() {
+        switch (this.props.editorContext.editMode) {
             case 'select':
                 return (<SelectedBox svgRoot={this.props.svgRoot} />)
             case 'path-creating':
@@ -37,6 +33,12 @@ class Editors extends Component<EditorsFullProps> {
         }
     }
 
+    render() {
+        return <EditorToolContext.Provider value={this.editorToolContext}>
+            {this.renderTool()}
+        </EditorToolContext.Provider>
+    }
+
 }
 
-export default connect(mapStateToProps)(Editors)
+export default WithSvgEditorContext(Editors)

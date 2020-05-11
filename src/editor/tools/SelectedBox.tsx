@@ -5,10 +5,11 @@ import { connect } from 'react-redux';
 import { domPaser, getAttributes, setAttributes, setTransform, SVG_XMLNS, getTransform } from '../../utils/Utils';
 import { TransformControl } from './TransformControl';
 import { WithSvgEditorContext } from '../../app/SvgEditorContext';
+import { EditorToolContextComponentProps, WithEditorToolContext } from '../EditorToolContext';
 
 type SelectedBoxProps = {
     svgRoot: SVGSVGElement
-} & SvgEditorContextComponentProps
+} & SvgEditorContextComponentProps & EditorToolContextComponentProps
 
 type SelectedBoxState = {
     selectedElements: Array<SVGGraphicsElement>
@@ -93,7 +94,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
 
     onMouseDown = (event: MouseEvent) => {
         event.stopPropagation()
-        this.props.editorContext.eventLocked = true
+        this.props.editorToolContext.eventLocked = true
         this.position = { x: event.clientX, y: event.clientY }
         this.bbox = this.box.getBBox()
         window.addEventListener('mousemove', this.onMouseMove)
@@ -116,7 +117,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
 
     onMouseUp = (event: MouseEvent) => {
         event.stopPropagation()
-        this.props.editorContext.eventLocked = false
+        this.props.editorToolContext.eventLocked = false
         window.removeEventListener('mousemove', this.onMouseMove)
         window.removeEventListener('mouseup', this.onMouseUp)
         if (this.mouseUpAndMoveLocked)
@@ -150,7 +151,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     }
 
     onSvgMouseup = (event: MouseEvent) => {
-        if (!this.props.editorContext.eventLocked && event.srcElement === this.svgRoot) {
+        if (!this.props.editorToolContext.eventLocked && event.srcElement === this.svgRoot) {
             this.props.editorContext.onDeselectAll()
         }
     }
@@ -166,7 +167,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
             this.svgRoot.addEventListener("mouseup", this.onSvgMouseup)
         })
         this.animationSubscription = this.props.editorContext.animationSignal.subscribe(this.updateAll)
-        this.transformControl = new TransformControl(this.props.svgRoot, this.props.editorContext, this.updateAll)
+        this.transformControl = new TransformControl(this.props.svgRoot, this.props.editorContext, this.props.editorToolContext, this.updateAll)
         this.componentDidUpdate(null)
     }
 
@@ -219,4 +220,4 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     }
 }
 
-export default WithSvgEditorContext(SelectedBox)
+export default WithSvgEditorContext(WithEditorToolContext(SelectedBox))

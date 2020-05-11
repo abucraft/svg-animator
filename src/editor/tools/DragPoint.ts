@@ -1,5 +1,6 @@
 import { domPaser, setAttributes, setTransform, SVG_XMLNS } from "../../utils/Utils";
 import { fromRotation, degree2Rad, multiplyVec3 } from "../../utils/mat3";
+import { EditorToolContextType } from "../EditorToolContext";
 
 export type DragCursor = 'nw-resize' | 'ne-resize' | 'sw-resize' | 'se-resize'
 export type RotateLocation = 'nw' | 'ne' | 'sw' | 'se'
@@ -69,13 +70,16 @@ abstract class BaseDragPoint extends BasePoint {
     onMove: (p: DeltaPoint2D) => void
     onMoveEnd: () => void
     svgEditorContext: SvgEditorContextType
+    editorToolContext: EditorToolContextType
     constructor(svgRoot: SVGSVGElement,
         svgEditorContext: SvgEditorContextType,
+        editorToolContext: EditorToolContextType,
         onMove: (p: DeltaPoint2D) => void,
         onMoveEnd: () => void,
         location: RotateLocation) {
         super(svgRoot, location)
         this.svgEditorContext = svgEditorContext
+        this.editorToolContext = editorToolContext
         this.point.addEventListener('mousedown', this.onMouseDown)
         this.point.addEventListener('click', this.onClick)
         this.onMove = onMove
@@ -90,7 +94,7 @@ abstract class BaseDragPoint extends BasePoint {
 
     onMouseDown = (event: MouseEvent) => {
         event.stopPropagation()
-        this.svgEditorContext.eventLocked = true
+        this.editorToolContext.eventLocked = true
         this.mousePosition = { x: event.clientX, y: event.clientY }
         this.pointPosition = { x: parseFloat(this.point.getAttribute('cx')), y: parseFloat(this.point.getAttribute('cy')) }
         window.addEventListener('mousemove', this.onMouseMove)
@@ -108,7 +112,7 @@ abstract class BaseDragPoint extends BasePoint {
 
     onMouseUp = (event: MouseEvent) => {
         event.stopPropagation()
-        this.svgEditorContext.eventLocked = false
+        this.editorToolContext.eventLocked = false
         window.removeEventListener('mousemove', this.onMouseMove)
         window.removeEventListener('mouseup', this.onMouseUp)
         this.onMoveEnd()

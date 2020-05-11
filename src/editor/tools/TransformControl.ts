@@ -4,6 +4,7 @@ import { updateSvgAttribute, selectSvgElement } from "../../core/Actions";
 import { getAttributes, setAttributes, setTransform, getTransform, getCenterRotateOrigin } from "../../utils/Utils";
 import { RotatePoint } from "./RotatePoint";
 import { fromRotation, degree2Rad, invert, multiplyVec3, transpose, fromRotationOrigin, rotate } from "../../utils/mat3";
+import { EditorToolContextType } from "../EditorToolContext";
 
 export class TransformControl {
     nwpoint: RectDragPoint
@@ -18,17 +19,21 @@ export class TransformControl {
     rotation: number
     selectSvgElements: SVGGraphicsElement[]
     onResize: () => void
-    constructor(svgRoot: SVGSVGElement, svgEditorContext: SvgEditorContextType, onResize: () => void) {
+    constructor(
+        svgRoot: SVGSVGElement, 
+        svgEditorContext: SvgEditorContextType, 
+        editorToolContext: EditorToolContextType,
+        onResize: () => void) {
         this.rotation = 0
         this.onResize = onResize
-        this.nwpoint = new RectDragPoint(svgRoot, svgEditorContext, this.onResizeElement('nw'), this.onResizeEnd, 'nw')
-        this.nepoint = new RectDragPoint(svgRoot, svgEditorContext, this.onResizeElement('ne'), this.onResizeEnd, 'ne')
-        this.swpoint = new RectDragPoint(svgRoot, svgEditorContext, this.onResizeElement('sw'), this.onResizeEnd, 'sw')
-        this.sepoint = new RectDragPoint(svgRoot, svgEditorContext, this.onResizeElement('se'), this.onResizeEnd, 'se')
-        this.nwRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, this.onRotateEnd, 'nw')
-        this.neRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, this.onRotateEnd, 'ne')
-        this.swRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, this.onRotateEnd, 'sw')
-        this.seRotatePoint = new RotatePoint(svgRoot, svgEditorContext, this.onRotate, this.onRotateEnd, 'se')
+        this.nwpoint = new RectDragPoint(svgRoot, svgEditorContext, editorToolContext, this.onResizeElement('nw'), this.onResizeEnd, 'nw')
+        this.nepoint = new RectDragPoint(svgRoot, svgEditorContext, editorToolContext, this.onResizeElement('ne'), this.onResizeEnd, 'ne')
+        this.swpoint = new RectDragPoint(svgRoot, svgEditorContext, editorToolContext, this.onResizeElement('sw'), this.onResizeEnd, 'sw')
+        this.sepoint = new RectDragPoint(svgRoot, svgEditorContext, editorToolContext, this.onResizeElement('se'), this.onResizeEnd, 'se')
+        this.nwRotatePoint = new RotatePoint(svgRoot, svgEditorContext, editorToolContext, this.onRotate, this.onRotateEnd, 'nw')
+        this.neRotatePoint = new RotatePoint(svgRoot, svgEditorContext, editorToolContext, this.onRotate, this.onRotateEnd, 'ne')
+        this.swRotatePoint = new RotatePoint(svgRoot, svgEditorContext, editorToolContext, this.onRotate, this.onRotateEnd, 'sw')
+        this.seRotatePoint = new RotatePoint(svgRoot, svgEditorContext, editorToolContext, this.onRotate, this.onRotateEnd, 'se')
     }
 
     setSelectedElements(selectedElements: SVGGraphicsElement[]) {

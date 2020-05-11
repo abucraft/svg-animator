@@ -66,13 +66,13 @@ class AppBody extends Component<AppBodyProps, AppBodyState> {
         super(props)
         this.state = {
             editorContext: {
+                editMode: this.props.svg.editMode,
                 svgStates: this.props.svg.svgStates,
                 selectedElementIds: this.props.svg.selectedElementIds,
                 svgCreatedSignal: new BehaviorSubject(null),
                 animationSignal: new Subject(),
                 currentTime: this.props.svg.currentTime,
                 totalTime: this.props.svg.totalTime,
-                eventLocked: false,
                 changeEditMode: this.props.changeEditMode,
                 onCreateSvgElement: this.props.onCreateSvgElement,
                 onDeselectAll: this.props.onDeselectAll,
@@ -85,6 +85,7 @@ class AppBody extends Component<AppBodyProps, AppBodyState> {
 
     static getDerivedStateFromProps(props: AppBodyProps, state: AppBodyState) {
         var newContext = produce(state.editorContext, draft => {
+            draft.editMode = props.svg.editMode
             draft.selectedElementIds = props.svg.selectedElementIds
             draft.svgStates = props.svg.svgStates
             draft.currentTime = props.svg.currentTime

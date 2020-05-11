@@ -3,14 +3,13 @@ import { BehaviorSubject, Subject } from "rxjs";
 
 declare global {
     type SvgEditorContextType = {
+        editMode: SvgEditMode
         selectedElementIds: Array<string>
         svgCreatedSignal: BehaviorSubject<SVGSVGElement>
         animationSignal: Subject<number>
         svgStates: SvgStateMap
         currentTime: number
         totalTime: number
-        // To block SelectBox click to select/deselect svg when resizing ot rotating
-        eventLocked: boolean
         changeEditMode: (mode: SvgEditMode) => void
         onCreateSvgElement: (obj: SvgNode) => void
         onDeselectAll: () => void
@@ -25,8 +24,8 @@ declare global {
 
 export const SvgEditorContext = React.createContext<SvgEditorContextType>(null)
 
-export function WithSvgEditorContext<C extends React.ComponentType<Matching<SvgEditorContextComponentProps, GetProps<C>>>>(WrapperComponent: C) {
-    return (props: Omit<GetProps<C>, keyof Shared<SvgEditorContextComponentProps, GetProps<C>>>) => {
+export function WithSvgEditorContext<C extends HighOrderWrappedComponentType<SvgEditorContextComponentProps, C>>(WrapperComponent: C) {
+    return (props: HighOrderExposedComponentProps<SvgEditorContextComponentProps, C>) => {
         return <SvgEditorContext.Consumer>
             {value => <WrapperComponent editorContext={value} {...(props as any)} />}
         </SvgEditorContext.Consumer>

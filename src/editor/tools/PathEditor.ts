@@ -2,59 +2,28 @@ import React, { Component } from 'react'
 import { createCircle } from './DragPoint';
 import { setAttributes, deepCopy, SVG_XMLNS, pointsToLinePath, setTransform, getCenterRotateOrigin } from '../../utils/Utils';
 import { clientPoint2SvgPoint, unapplyTransform } from '../Utils';
-import { changeEditMode, updateSvgAttribute } from '../../core/Actions';
-import { connect } from 'react-redux';
+import { WithSvgEditorContext } from '../../app/SvgEditorContext';
 
 type PathEditorProps = {
     svgRoot: SVGSVGElement
-} & PathEditorActionProps & PathEditorPropsFromStore
-
-type PathEditorActionProps = {
-    changeEditMode: (mode: SvgEditMode) => void
-    updateSvgAttribute: (attributesMap: { [key: string]: any }) => void
-}
-
-type PathEditorPropsFromStore = {
-    svgStates: SvgStateMap
-    selectedElementIds: Array<string>
-    editMode: SvgEditMode
-}
+} & SvgEditorContextComponentProps
 
 type PathEditorState = {
     selectedElements: Array<SVGGraphicsElement>
 }
 
-function mapStateToProps(state: AppState): PathEditorPropsFromStore {
-    return {
-        selectedElementIds: state.svg.selectedElementIds,
-        editMode: state.svg.editMode,
-        svgStates: state.svg.svgStates
-    }
-}
-
-function mapDispatchToProps(dispatch): PathEditorActionProps {
-    return {
-        changeEditMode: (mode) => {
-            dispatch(changeEditMode(mode))
-        },
-        updateSvgAttribute: (attr) => {
-            dispatch(updateSvgAttribute(attr))
-        }
-    }
-}
-
 class PathEditor extends Component<PathEditorProps, PathEditorState>{
     pathCreation: PathCreation
     componentDidMount() {
-        let selectedElementIds = this.props.selectedElementIds
-        if (this.props.editMode === "path-creating" && selectedElementIds.length > 0) {
+        let selectedElementIds = this.props.editorContext.selectedElementIds
+        if (this.props.editorContext.editMode === "path-creating" && selectedElementIds.length > 0) {
             this.createPathCreation()
         }
     }
 
     componentDidUpdate(prevProps: PathEditorProps) {
-        if (prevProps.editMode !== this.props.editMode) {
-            if (this.props.editMode === "path-creating") {
+        if (prevProps.editorContext.editMode !== this.props.editorContext.editMode) {
+            if (this.props.editorContext.editMode === "path-creating") {
                 if (this.pathCreation !== null) {
                     console.error("Path Creation is not empty while switching to creating", this.pathCreation)
                     this.pathCreation.clear()
@@ -63,10 +32,10 @@ class PathEditor extends Component<PathEditorProps, PathEditorState>{
                 this.createPathCreation()
             }
         } else {
-            let oldInitState = this.getInitState(prevProps.svgStates, this.props.selectedElementIds[0])
-            let newInitState = this.getInitState(this.props.svgStates, this.props.selectedElementIds[0])
+            let oldInitState = this.getInitState(prevProps.editorContext.svgStates, this.props.editorContext.selectedElementIds[0])
+            let newInitState = this.getInitState(this.props.editorContext.svgStates, this.props.editorContext.selectedElementIds[0])
             if (oldInitState !== newInitState) {
-                if (this.props.editMode === "path-creating") {
+                if (this.props.editorContext.editMode === "path-creating") {
                     this.pathCreation.applyNewPathPoints(newInitState.attributes["d"])
                 }
             }
@@ -82,23 +51,23 @@ class PathEditor extends Component<PathEditorProps, PathEditorState>{
 
 
     createPathCreation = () => {
-        let selectedElementIds = this.props.selectedElementIds
-        let initState = this.getInitState(this.props.svgStates, selectedElementIds[0])
+        let selectedElementIds = this.props.editorContext.selectedElementIds
+        let initState = this.getInitState(this.props.editorContext.svgStates, selectedElementIds[0])
         let pathElm = this.props.svgRoot.getElementById(selectedElementIds[0]) as SVGPathElement
         this.pathCreation = new PathCreation(this.props.svgRoot,
             pathElm,
             initState.transform,
             initState.attributes["d"], (pts) => {
-                this.props.updateSvgAttribute({
-                    [this.props.selectedElementIds[0]]: {
+                this.props.editorContext.onUpdateSvgElement({
+                    [this.props.editorContext.selectedElementIds[0]]: {
                         attributes: {
                             d: pts
                         }
                     }
                 })
             }, (pts) => {
-                this.props.updateSvgAttribute({
-                    [this.props.selectedElementIds[0]]: {
+                this.props.editorContext.onUpdateSvgElement({
+                    [this.props.editorContext.selectedElementIds[0]]: {
                         attributes: {
                             d: pts
                         },
@@ -109,7 +78,7 @@ class PathEditor extends Component<PathEditorProps, PathEditorState>{
                 })
                 this.pathCreation.clear()
                 this.pathCreation = null
-                this.props.changeEditMode("path-editing")
+                this.props.editorContext.changeEditMode("path-editing")
             })
     }
 
@@ -124,7 +93,7 @@ class PathEditor extends Component<PathEditorProps, PathEditorState>{
     }
 }
 
-export const PathEditorConnected = connect(mapStateToProps, mapDispatchToProps)(PathEditor);
+export const PathEditorConnected = WithSvgEditorContext(PathEditor)
 
 class PathCreation {
     points: Point2D[]

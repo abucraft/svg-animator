@@ -3,11 +3,13 @@ import './RotatePoint.css'
 import { fromRotation, degree2Rad, rat2Degree, multiplyVec3 } from "../../utils/mat3";
 import { RotateLocation, BasePoint } from "./DragPoint";
 import { svgPoint2ClientPoint } from "../Utils";
+import { EditorToolContextType } from "../EditorToolContext";
 
 
 export class RotatePoint extends BasePoint {
     svgRoot: SVGSVGElement
     svgEditorContext: SvgEditorContextType
+    editorToolContext: EditorToolContextType
     onRotate: (degree: number) => void
     onRotateEnd: () => void
     point: SVGElement
@@ -20,11 +22,13 @@ export class RotatePoint extends BasePoint {
     constructor(
         svgRoot: SVGSVGElement,
         svgEditorContext: SvgEditorContextType,
+        editorToolContext: EditorToolContextType,
         onRotate: (degree: number) => void,
         onRotateEnd: () => void,
         rotateLocation: RotateLocation) {
         super(svgRoot, rotateLocation)
         this.svgEditorContext = svgEditorContext
+        this.editorToolContext = editorToolContext
         this.point.addEventListener('mousedown', this.onMouseDown)
         this.point.addEventListener('click', this.onClick)
         this.onRotate = onRotate
@@ -84,7 +88,7 @@ export class RotatePoint extends BasePoint {
 
     onMouseDown = (event: MouseEvent) => {
         event.stopPropagation()
-        this.svgEditorContext.eventLocked = true
+        this.editorToolContext.eventLocked = true
         this.mousePosition = { x: event.clientX, y: event.clientY }
         window.addEventListener('mousemove', this.onMouseMove)
         window.addEventListener('mouseup', this.onMouseUp)
@@ -112,7 +116,7 @@ export class RotatePoint extends BasePoint {
 
     onMouseUp = (event: MouseEvent) => {
         event.stopPropagation()
-        setTimeout(() => this.svgEditorContext.eventLocked = false, 0)
+        setTimeout(() => this.editorToolContext.eventLocked = false, 0)
         window.removeEventListener('mousemove', this.onMouseMove)
         window.removeEventListener('mouseup', this.onMouseUp)
         this.onRotateEnd()

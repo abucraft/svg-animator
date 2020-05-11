@@ -3,6 +3,7 @@ const HtmlWebPackPlugin = require("html-webpack-plugin");
 const webpack = require('webpack');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const tsImportPluginFactory = require('ts-import-plugin')
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const htmlPlugin = new HtmlWebPackPlugin({
     template: "./src/index.html",
@@ -72,8 +73,8 @@ module.exports = function (webpackEnv) {
             path: path.resolve(__dirname, 'dist')
         },
         plugins: [
-            new webpack.NamedModulesPlugin(),
             htmlPlugin,
+            new ForkTsCheckerWebpackPlugin(),
             ...(process.env.BUNDLE_ANALYZER ? [new BundleAnalyzerPlugin()] : [])
         ]
     }
