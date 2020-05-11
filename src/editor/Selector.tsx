@@ -1,12 +1,10 @@
 import { Component } from 'react'
 import React from 'react'
-import { connect } from 'react-redux'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMousePointer } from '@fortawesome/free-solid-svg-icons/faMousePointer'
 import { Tooltip } from 'antd'
 import * as classNames from 'classnames'
-import { selectSvgElement, deselectSvgElementAll, changeEditMode } from '../core/Actions';
-import { SvgEditorContext } from '../app/SvgEditorContext';
+import {  WithSvgEditorContext } from '../app/SvgEditorContext';
 
 declare global {
     interface ToolBaseProps {
@@ -16,22 +14,7 @@ declare global {
         onDeselect: (resetDefault: boolean) => void
     }
 
-    interface SelectorDispatcherProps {
-        onDeselectAll: () => void
-        changeToSelectMode: () => void
-    }
-    type SelectorProps = ToolBaseProps & SelectorDispatcherProps
-}
-
-function mapDispatchToProps(dispatch): SelectorDispatcherProps {
-    return {
-        changeToSelectMode: () => {
-            dispatch(changeEditMode("select"))
-        },
-        onDeselectAll: () => {
-            dispatch(deselectSvgElementAll())
-        }
-    }
+    type SelectorProps = ToolBaseProps & SvgEditorContextComponentProps
 }
 
 export const SelectorName = "Selector"
@@ -44,9 +27,9 @@ class Selector extends Component<SelectorProps> {
     componentDidUpdate(prevProps: SelectorProps) {
         if (this.props.active !== prevProps.active) {
             if (!this.props.active) {
-                this.props.onDeselectAll()
+                this.props.editorContext.onDeselectAll()
             } else {
-                this.props.changeToSelectMode()
+                this.props.editorContext.changeEditMode("select")
             }
         }
     }
@@ -65,4 +48,4 @@ class Selector extends Component<SelectorProps> {
     }
 }
 
-export const ConnectedSelector = connect(null, mapDispatchToProps)(Selector)
+export const ConnectedSelector = WithSvgEditorContext(Selector)

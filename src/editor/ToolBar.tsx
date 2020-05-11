@@ -2,7 +2,7 @@ import { Component, ComponentClass, RefObject } from 'react'
 import * as React from 'react'
 import { ConnectedSelector, SelectorName } from './Selector'
 import './ToolBar.less'
-import { SvgEditorContext } from '../app/SvgEditorContext';
+import { SvgEditorContext, WithSvgEditorContext } from '../app/SvgEditorContext';
 import Editors from './Editors'
 import { RectCreatorName, ConnectedRectCreator } from './RectCreator';
 import { Subscription } from 'rxjs';
@@ -13,23 +13,19 @@ declare global {
     interface ToolBarState {
         svgRoot: SVGSVGElement
         activeToolName: string
-        tools: Map<string, ComponentClass<ToolBaseProps>>
+        tools: Map<string, React.ComponentType<ToolBaseProps>>
     }
 }
 
 
-
-export default class ToolBar extends Component<any, ToolBarState> {
-    static contextType = SvgEditorContext
-    context: SvgEditorContextType
-
+class ToolBar extends Component<SvgEditorContextComponentProps, ToolBarState> {
     svgSubscription: Subscription
     constructor(props) {
         super(props)
         this.state = {
             svgRoot: null,
             activeToolName: SelectorName,
-            tools: new Map<string, ComponentClass<ToolBaseProps>>([
+            tools: new Map<string, React.ComponentType<ToolBaseProps>>([
                 [SelectorName, ConnectedSelector],
                 [RectCreatorName, ConnectedRectCreator],
                 [EllipseCreatorName, ConnectedEllipseCreator],
@@ -39,7 +35,7 @@ export default class ToolBar extends Component<any, ToolBarState> {
     }
 
     componentDidMount() {
-        this.svgSubscription = this.context.svgCreatedSignal.subscribe((root) => this.setState({ svgRoot: root }))
+        this.svgSubscription = this.props.editorContext.svgCreatedSignal.subscribe((root) => this.setState({ svgRoot: root }))
     }
 
     componentWillUnmount() {
@@ -73,3 +69,5 @@ export default class ToolBar extends Component<any, ToolBarState> {
         )
     }
 }
+
+export default WithSvgEditorContext(ToolBar)

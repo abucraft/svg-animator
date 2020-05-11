@@ -7,25 +7,14 @@ import { compose } from 'redux';
 import FrameContainer from './FrameContainer'
 import { moveTimeline } from '../core/Actions'
 import { SizedComponent } from '../utils/SizedComponent'
-import { SvgEditorContext } from '../app/SvgEditorContext';
+import { SvgEditorContext, WithSvgEditorContext } from '../app/SvgEditorContext';
 import { DefaultTransform } from '../utils/Utils';
 import { Tween } from '../animation/Tween';
 import produce from 'immer';
 
 declare global {
 
-    type TimelineStateProps = {
-        svgStates: SvgStateMap
-        currentTime: number
-        totalTime: number
-    }
-
-    type TimelineDispatchProps = {
-        onTimelineMoveTo: (number) => void
-    }
-
-    type TimelineProps = TimelineStateProps & TimelineDispatchProps
-
+    
     type FrameValue = {
         from: any
         to: any
@@ -43,32 +32,19 @@ declare global {
     // {id: {attribute: frame[]}}
     type SvgAnimations = Map<string, Map<string, Frame[]>>
 
-    interface TimelineState {
-        svgAnimations: SvgAnimations
-        innerTime: number
-        start: number
-        scale: number
-    }
-
     interface AnimationFactory {
         createFrame: (target, duration, attr, frameValue: FrameValue, targetTime: number) => Tween
         createTransformFrame: (target, duration, fromTransform: Transform, toTransform: Transform, targetTime: number) => Tween
     }
 };
-function mapStateToProps(state: AppState): TimelineStateProps {
-    return {
-        svgStates: state.svg.svgStates,
-        currentTime: state.svg.currentTime,
-        totalTime: state.svg.totalTime
-    }
-}
 
-function mapDispatchToProps(dispatch): TimelineDispatchProps {
-    return {
-        onTimelineMoveTo: (time: number) => {
-            dispatch(moveTimeline(time));
-        }
-    }
+type TimelineProps = SvgEditorContextComponentProps
+
+interface TimelineState {
+    svgAnimations: SvgAnimations
+    innerTime: number
+    start: number
+    scale: number
 }
 
 export const TweenAnimationFactory: AnimationFactory = {
@@ -110,7 +86,7 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
             svgAnimations: new Map(),
             start: 0,
             scale: 1,
-            innerTime: this.props.currentTime
+            innerTime: this.props.editorContext.currentTime
         }
     }
 
@@ -270,11 +246,11 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
     }
 
     static buildState(props: TimelineProps, componentState: TimelineState): TimelineState {
-        let svgAnimations = Timelines.buildAnimationsFromState(props.svgStates, componentState.svgAnimations, props.currentTime, TweenAnimationFactory)
+        let svgAnimations = Timelines.buildAnimationsFromState(props.editorContext.svgStates, componentState.svgAnimations, props.editorContext.currentTime, TweenAnimationFactory)
         let nextState = {
             ...componentState,
             svgAnimations: svgAnimations,
-            innerTime: props.currentTime
+            innerTime: props.editorContext.currentTime
         }
         return nextState
     }
@@ -291,7 +267,7 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                 })
             })
         });
-        this.context.animationSignal.next(time);
+        this.props.editorContext.animationSignal.next(time);
     }
 
     animationHandle = 0
@@ -312,7 +288,7 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
         } else if (this.animationHandle) {
             cancelAnimationFrame(this.animationHandle)
             this.animationHandle = 0
-            this.props.onTimelineMoveTo(this.playTime)
+            this.props.editorContext.onTimelineMoveTo(this.playTime)
         }
     }
 
@@ -320,10 +296,10 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
         if (prevProps !== this.props) {
             // console.log("prev state in timelin", prevProps.svgStates)
             // console.log("current state in timeline", this.props.svgStates)
-            if (prevProps.svgStates !== this.props.svgStates) {
+            if (prevProps.editorContext.svgStates !== this.props.editorContext.svgStates) {
                 this.setState(Timelines.buildState(this.props, this.state))
             } else {
-                this.setState({ innerTime: this.props.currentTime })
+                this.setState({ innerTime: this.props.editorContext.currentTime })
             }
         }
     }
@@ -336,8 +312,8 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
         return (
             <FrameContainer
                 onTimelineMove={this.onTimelineMove}
-                onTimelineMoveTo={this.props.onTimelineMoveTo}
-                totalTime={this.props.totalTime}
+                onTimelineMoveTo={this.props.editorContext.onTimelineMoveTo}
+                totalTime={this.props.editorContext.totalTime}
                 innerTime={this.state.innerTime}
                 start={this.state.start}
                 scale={this.state.scale}
@@ -348,4 +324,4 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
     }
 }
 
-export default compose(SizedComponent, connect(mapStateToProps, mapDispatchToProps))(Timelines)
+export default SizedComponent(WithSvgEditorContext(Timelines))

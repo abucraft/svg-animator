@@ -1,29 +1,11 @@
 import React, { Component } from 'react'
 import { Tooltip } from 'antd';
 import * as classNames from 'classnames'
-import { changeEditMode, createSvgNode } from '../core/Actions';
-import { connect } from 'react-redux';
-import { SvgEditorContext } from '../app/SvgEditorContext';
+import { WithSvgEditorContext } from '../app/SvgEditorContext';
 import { clientPoint2SvgPoint } from './Utils';
 import { DefaultTransform } from '../utils/Utils';
 
-export type CreatorDispathProps = {
-    onCreateSvgElement: (obj: SvgNode) => void
-    changeEditMode: (mode: SvgEditMode) => void
-}
-
-export type CreatorProps = ToolBaseProps & CreatorDispathProps
-
-export function mapDispatchForCreator(dispatch): CreatorDispathProps {
-    return {
-        onCreateSvgElement: (obj: SvgNode) => {
-            dispatch(createSvgNode(obj))
-        },
-        changeEditMode: (mode: SvgEditMode) => {
-            dispatch(changeEditMode(mode))
-        }
-    }
-}
+export type CreatorProps = ToolBaseProps & SvgEditorContextComponentProps
 
 export const RectCreatorName = "RectCreator"
 
@@ -31,7 +13,7 @@ class RectCreator extends Component<CreatorProps> {
     componentDidUpdate(prevProps: CreatorProps) {
         if (this.props.active !== prevProps.active) {
             if (this.props.active) {
-                this.props.changeEditMode("creating")
+                this.props.editorContext.changeEditMode("creating")
                 this.props.svgRoot.addEventListener("click", this.onSvgClick)
             } else {
                 this.props.svgRoot.removeEventListener("click", this.onSvgClick)
@@ -46,7 +28,7 @@ class RectCreator extends Component<CreatorProps> {
     onSvgClick = (event: MouseEvent) => {
         let mousePoint = { x: event.clientX, y: event.clientY }
         let svgPoint = clientPoint2SvgPoint(mousePoint, this.props.svgRoot)
-        this.props.onCreateSvgElement({
+        this.props.editorContext.onCreateSvgElement({
             nodeName: 'rect',
             attributes: {
                 x: -50,
@@ -81,4 +63,4 @@ class RectCreator extends Component<CreatorProps> {
     }
 }
 
-export const ConnectedRectCreator = connect(null, mapDispatchForCreator)(RectCreator)
+export const ConnectedRectCreator = WithSvgEditorContext(RectCreator)

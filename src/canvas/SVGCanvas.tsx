@@ -3,33 +3,17 @@ import * as React from 'react'
 import { compose } from 'redux'
 import { connect } from 'react-redux'
 import { SizedComponent } from '../utils/SizedComponent'
-import { SvgEditorContext } from '../app/SvgEditorContext';
+import { SvgEditorContext, WithSvgEditorContext } from '../app/SvgEditorContext';
 import { setTransform, SVG_XMLNS, pointsToLinePath } from '../utils/Utils';
 
 declare global {
-    type SvgCanvasStateProps = {
-        svgStates: SvgStateMap
-        currentTime: number
-    }
-    type SvgCanvasProps = SvgCanvasStateProps & {
-        width?: number
-        height?: number
-    }
+    type SvgCanvasProps = SvgEditorContextComponentProps & SizedComponentState
 }
 
-
-function mapStateToProps(state: AppState): SvgCanvasStateProps {
-    return {
-        svgStates: state.svg.svgStates,
-        currentTime: state.svg.currentTime
-    }
-}
 
 class SvgCanvas extends Component<SvgCanvasProps> {
     svgRoot: RefObject<SVGSVGElement>
     props: SvgCanvasProps
-    static contextType = SvgEditorContext
-    context: SvgEditorContextType
     constructor(props) {
         super(props);
         this.svgRoot = React.createRef();
@@ -82,14 +66,14 @@ class SvgCanvas extends Component<SvgCanvasProps> {
     }
 
     componentDidMount() {
-        this.updateSvgElements(new Map(), this.props.svgStates)
-        this.context.svgCreatedSignal.next(this.svgRoot.current);
+        this.updateSvgElements(new Map(), this.props.editorContext.svgStates)
+        this.props.editorContext.svgCreatedSignal.next(this.svgRoot.current);
     }
 
     shouldComponentUpdate(nextProps: SvgCanvasProps, nextState) {
         let oldProps = this.props;
-        if (oldProps.svgStates != nextProps.svgStates) {
-            this.updateSvgElements(oldProps.svgStates, nextProps.svgStates);
+        if (oldProps.editorContext.svgStates != nextProps.editorContext.svgStates) {
+            this.updateSvgElements(oldProps.editorContext.svgStates, nextProps.editorContext.svgStates);
         }
         return oldProps.width !== nextProps.width || oldProps.height !== nextProps.height;
     }
@@ -99,5 +83,4 @@ class SvgCanvas extends Component<SvgCanvasProps> {
     }
 }
 
-
-export default compose(SizedComponent, connect(mapStateToProps))(SvgCanvas);
+export default SizedComponent(WithSvgEditorContext(SvgCanvas))

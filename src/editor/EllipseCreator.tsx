@@ -1,10 +1,11 @@
 import React, { Component } from "react";
-import { CreatorProps, mapDispatchForCreator } from "./RectCreator";
+import { CreatorProps } from "./RectCreator";
 import { Tooltip } from "antd";
 import * as classNames from 'classnames'
 import { connect } from "react-redux";
 import { clientPoint2SvgPoint } from "./Utils";
 import { DefaultTransform } from "../utils/Utils";
+import { WithSvgEditorContext } from "../app/SvgEditorContext";
 
 export const EllipseCreatorName = "EllipseCreator";
 
@@ -12,7 +13,7 @@ class EllipseCreator extends Component<CreatorProps>{
     componentDidUpdate(prevProps: CreatorProps) {
         if (this.props.active !== prevProps.active) {
             if (this.props.active) {
-                this.props.changeEditMode("creating")
+                this.props.editorContext.changeEditMode("creating")
                 this.props.svgRoot.addEventListener("click", this.onSvgClick)
             } else {
                 this.props.svgRoot.removeEventListener("click", this.onSvgClick)
@@ -27,7 +28,7 @@ class EllipseCreator extends Component<CreatorProps>{
     onSvgClick = (event: MouseEvent) => {
         let mousePoint = { x: event.clientX, y: event.clientY }
         let svgPoint = clientPoint2SvgPoint(mousePoint, this.props.svgRoot)
-        this.props.onCreateSvgElement({
+        this.props.editorContext.onCreateSvgElement({
             nodeName: 'ellipse',
             attributes: {
                 cx: 0,
@@ -61,4 +62,4 @@ class EllipseCreator extends Component<CreatorProps>{
 }
 
 
-export const ConnectedEllipseCreator = connect(null, mapDispatchForCreator)(EllipseCreator)
+export const ConnectedEllipseCreator = WithSvgEditorContext(EllipseCreator)

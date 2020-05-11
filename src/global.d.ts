@@ -29,3 +29,20 @@ interface HTMLElement {
 interface SVGElement {
     _gsTransform?: GSTransfrom
 }
+
+type GetProps<C> = C extends React.ComponentType<infer P> ? P : never;
+
+type Shared<
+    InjectedProps,
+    DecorationTargetProps
+    > = {
+        [P in Extract<keyof InjectedProps, keyof DecorationTargetProps>]?: InjectedProps[P] extends DecorationTargetProps[P] ? DecorationTargetProps[P] : never;
+    };
+
+type Matching<InjectedProps, DecorationTargetProps> = {
+    [P in keyof DecorationTargetProps]: P extends keyof InjectedProps
+    ? InjectedProps[P] extends DecorationTargetProps[P]
+    ? DecorationTargetProps[P]
+    : InjectedProps[P]
+    : DecorationTargetProps[P];
+};

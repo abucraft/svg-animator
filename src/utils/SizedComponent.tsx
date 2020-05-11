@@ -13,8 +13,8 @@ declare global {
     }
 }
 
-export function SizedComponent<P>(WrappedComponent: React.ComponentType<P>): React.ComponentType<SizedComponentProps & P> {
-    return class SizedWrapperComponent extends Component<SizedComponentProps & P> {
+export function SizedComponent<C extends React.ComponentType<Matching<SizedComponentState, GetProps<C>>>>(WrappedComponent: C): React.ComponentType<Omit<GetProps<C>, keyof Shared<SizedComponentState, GetProps<C>>> & SizedComponentProps> {
+    return class SizedWrapperComponent extends Component<Omit<GetProps<C>, keyof Shared<SizedComponentState, GetProps<C>>> & SizedComponentProps> {
         state: SizedComponentState
         wrapper: RefObject<HTMLDivElement>
         props: any
@@ -27,7 +27,7 @@ export function SizedComponent<P>(WrappedComponent: React.ComponentType<P>): Rea
             }
             this.wrapper = React.createRef();
         }
-        
+
         componentDidMount() {
             this.resizeSensor = new ResizeSensor(this.wrapper.current, (size) => {
                 this.setState({ width: size.width, height: size.height })

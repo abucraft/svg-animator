@@ -4,44 +4,14 @@ import { updateSvgAttribute, selectSvgElement, deselectSvgElementAll } from '../
 import { connect } from 'react-redux';
 import { domPaser, getAttributes, setAttributes, setTransform, SVG_XMLNS, getTransform } from '../../utils/Utils';
 import { TransformControl } from './TransformControl';
-import { SvgEditorContext } from '../../app/SvgEditorContext';
+import { WithSvgEditorContext } from '../../app/SvgEditorContext';
 
 type SelectedBoxProps = {
     svgRoot: SVGSVGElement
-} & SelectedBoxActionProps & SelectedBoxPropsFromStore
-
-type SelectedBoxActionProps = {
-    onMoveSvgElement: (attributesMap: { [key: string]: any }) => void
-    onSelectSvgElement: (id: string) => void
-    onDeselectAll: () => void
-}
-
-type SelectedBoxPropsFromStore = {
-    selectedElementIds: Array<string>
-}
+} & SvgEditorContextComponentProps
 
 type SelectedBoxState = {
     selectedElements: Array<SVGGraphicsElement>
-}
-
-function mapStateToProps(state: AppState): SelectedBoxPropsFromStore {
-    return {
-        selectedElementIds: state.svg.selectedElementIds
-    }
-}
-
-function mapDispatchToProps(dispatch): SelectedBoxActionProps {
-    return {
-        onMoveSvgElement: (attributesMap: Map<string, SvgNode>) => {
-            dispatch(updateSvgAttribute(attributesMap));
-        },
-        onSelectSvgElement: (id: string) => {
-            dispatch(selectSvgElement(id));
-        },
-        onDeselectAll: () => {
-            dispatch(deselectSvgElementAll())
-        }
-    }
 }
 
 export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
@@ -55,8 +25,6 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     animationSubscription: Subscription
     svgSubscription: Subscription
     transformControl: TransformControl
-    static contextType = SvgEditorContext
-    context: SvgEditorContextType
     constructor(props) {
         super(props)
         this.state = {
@@ -75,7 +43,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
         // console.log(this.props, prevProps)
         if (this.props !== prevProps) {
             this.setState({
-                selectedElements: this.props.selectedElementIds.map((id) => {
+                selectedElements: this.props.editorContext.selectedElementIds.map((id) => {
                     return document.getElementById(id) as any as SVGGraphicsElement
                 })
             }, () => {
@@ -125,7 +93,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
 
     onMouseDown = (event: MouseEvent) => {
         event.stopPropagation()
-        this.context.eventLocked = true
+        this.props.editorContext.eventLocked = true
         this.position = { x: event.clientX, y: event.clientY }
         this.bbox = this.box.getBBox()
         window.addEventListener('mousemove', this.onMouseMove)
@@ -148,7 +116,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
 
     onMouseUp = (event: MouseEvent) => {
         event.stopPropagation()
-        this.context.eventLocked = false
+        this.props.editorContext.eventLocked = false
         window.removeEventListener('mousemove', this.onMouseMove)
         window.removeEventListener('mouseup', this.onMouseUp)
         if (this.mouseUpAndMoveLocked)
@@ -157,7 +125,7 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
         this.state.selectedElements.forEach(elem => {
             attributesMap[elem.id] = { transform: elem._gsTransform }
         });
-        this.props.onMoveSvgElement(attributesMap);
+        this.props.editorContext.onUpdateSvgElement(attributesMap);
     }
 
     onClick = (event: Event) => {
@@ -166,10 +134,10 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
 
     onSvgMouseDown = (event: MouseEvent) => {
         if (event.target !== this.svgRoot) {
-            let id = event.srcElement.id;
+            let id = (event.srcElement as HTMLElement).id;
             if (id.length > 0) {
                 event.stopPropagation()
-                this.props.onSelectSvgElement(id);
+                this.props.editorContext.onSelectSvgElement(id);
                 let selectedElements = [event.target as SVGGraphicsElement]
                 // For debounce. When click in a short time, we don't consider it as move
                 this.mouseUpAndMoveLocked = true
@@ -182,8 +150,8 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     }
 
     onSvgMouseup = (event: MouseEvent) => {
-        if (!this.context.eventLocked && event.srcElement === this.svgRoot) {
-            this.props.onDeselectAll()
+        if (!this.props.editorContext.eventLocked && event.srcElement === this.svgRoot) {
+            this.props.editorContext.onDeselectAll()
         }
     }
 
@@ -192,13 +160,13 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
         this.props.svgRoot.appendChild(this.box)
         this.box.addEventListener('mousedown', this.onMouseDown)
         this.box.addEventListener('click', this.onClick)
-        this.svgSubscription = this.context.svgCreatedSignal.subscribe(svg => {
+        this.svgSubscription = this.props.editorContext.svgCreatedSignal.subscribe(svg => {
             this.svgRoot = svg
             this.svgRoot.addEventListener("mousedown", this.onSvgMouseDown)
             this.svgRoot.addEventListener("mouseup", this.onSvgMouseup)
         })
-        this.animationSubscription = this.context.animationSignal.subscribe(this.updateAll)
-        this.transformControl = new TransformControl(this.props.svgRoot, this.context, this.updateAll)
+        this.animationSubscription = this.props.editorContext.animationSignal.subscribe(this.updateAll)
+        this.transformControl = new TransformControl(this.props.svgRoot, this.props.editorContext, this.updateAll)
         this.componentDidUpdate(null)
     }
 
@@ -251,4 +219,4 @@ export class SelectedBox extends Component<SelectedBoxProps, SelectedBoxState> {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(SelectedBox)
+export default WithSvgEditorContext(SelectedBox)

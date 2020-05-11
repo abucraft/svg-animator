@@ -1,14 +1,13 @@
 import React, { Component } from 'react'
-import { createSvgNode, changeEditMode } from '../core/Actions';
-import { CreatorProps, mapDispatchForCreator } from './RectCreator';
+import { CreatorProps } from './RectCreator';
 import { Tooltip } from 'antd';
 import classNames from 'classnames'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenNib } from '@fortawesome/free-solid-svg-icons/faPenNib'
-import { connect } from 'react-redux';
 import { SVG_XMLNS, deepCopy, pointsToLinePath, setAttributes, DefaultTransform, getCenterRotateOrigin } from '../utils/Utils';
 import { createCircle } from './tools/DragPoint';
 import { clientPoint2SvgPoint } from './Utils';
+import { WithSvgEditorContext } from '../app/SvgEditorContext';
 
 export const PathCreatorName = "PathCreatorName"
 
@@ -16,7 +15,7 @@ export class PathCreator extends Component<CreatorProps> {
     componentDidUpdate(prevProps: CreatorProps) {
         if (this.props.active !== prevProps.active) {
             if (this.props.active) {
-                this.props.changeEditMode("creating")
+                this.props.editorContext.changeEditMode("creating")
                 this.props.svgRoot.addEventListener("click", this.onSvgClick)
             } else {
                 this.props.svgRoot.removeEventListener("click", this.onSvgClick)
@@ -27,7 +26,7 @@ export class PathCreator extends Component<CreatorProps> {
     onSvgClick = (event: MouseEvent) => {
         let mousePoint = { x: event.clientX, y: event.clientY }
         let svgPoint = clientPoint2SvgPoint(mousePoint, this.props.svgRoot)
-        this.props.onCreateSvgElement({
+        this.props.editorContext.onCreateSvgElement({
             nodeName: 'path',
             attributes: {
                 d: [{ x: 0, y: 0 }]
@@ -43,7 +42,7 @@ export class PathCreator extends Component<CreatorProps> {
         // reset the mode for default value 
         this.props.onDeselect(false)
 
-        this.props.changeEditMode("path-creating")
+        this.props.editorContext.changeEditMode("path-creating")
     }
 
     onClick = () => {
@@ -59,4 +58,4 @@ export class PathCreator extends Component<CreatorProps> {
     }
 }
 
-export const PathCreatorConnected = connect(null, mapDispatchForCreator)(PathCreator)
+export const PathCreatorConnected = WithSvgEditorContext(PathCreator)
