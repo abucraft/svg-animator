@@ -11,11 +11,11 @@ const htmlPlugin = new HtmlWebPackPlugin({
     favicon: './favicon.ico'
 });
 
-module.exports = function (webpackEnv) {
+module.exports = function (env) {
     return {
-        mode: webpackEnv,
+        mode: env.production ? "production" : "development",
         entry: './src/index.tsx',
-        devtool: webpackEnv === "production" ? false : 'source-map',
+        devtool: env.production ? false : 'source-map',
         devServer: {
             contentBase: './dist'
         },

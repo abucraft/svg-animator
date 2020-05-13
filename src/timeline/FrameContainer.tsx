@@ -66,7 +66,7 @@ export default class FrameContainer extends Component<FrameContainerProps> {
                 </div>
                 <div className="flex-row" ref={this.containerRef} style={{ overflowX: "hidden", flex: 1 }}>
                     <div className="flex-column" style={{ flex: 1, position: 'relative', marginLeft: '10px', marginRight: '10px', overflowX: 'initial' }}>
-                        <div style={{ height: 40, display: 'flex' }}>
+                        <div style={{ height: 40, display: 'flex', flexShrink: 0 }}>
                             <TimeRuler totalTime={this.props.totalTime} start={this.props.start} scale={this.props.scale} />
                         </div>
                         <div className="timelines">

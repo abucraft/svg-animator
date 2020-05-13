@@ -16,6 +16,7 @@ import './AppBody.less'
 import Logo from './icon.svg';
 import { exportToSvgString, download } from '../exports/SvgExports';
 import produce from 'immer'
+import AttributesPanel from '../attributes-panel/AttributesPanel'
 
 interface AppBodyProps extends AppState {
     onClearAlert: () => void
@@ -91,10 +92,8 @@ class AppBody extends Component<AppBodyProps, AppBodyState> {
             draft.currentTime = props.svg.currentTime
             draft.totalTime = props.svg.totalTime
         })
-        if (newContext !== state.editorContext) {
-            return {
-                editorContext: newContext
-            }
+        return {
+            editorContext: newContext
         }
     }
 
@@ -115,12 +114,12 @@ class AppBody extends Component<AppBodyProps, AppBodyState> {
                 </div>
                 <div style={{ flex: 1 }}>
                     <SvgEditorContext.Provider value={this.state.editorContext}>
-                        <SplitPane style={{ position: 'relative' }} split="horizontal" defaultSize={200} primary="second">
+                        <SplitPane style={{ position: 'relative' }} split="horizontal" defaultSize={200} primary="second" minSize={0}>
                             <div className="editor">
                                 <ToolBar></ToolBar>
-                                <SplitPane style={{ position: 'relative', height: 'auto', alignSelf: 'stretch' }} split="vertical" defaultSize={500} primary="second" pane2Style={{ flexDirection: 'row' }}>
+                                <SplitPane style={{ position: 'relative', height: 'auto', alignSelf: 'stretch' }} split="vertical" defaultSize={500} minSize={0} primary="second" pane2Style={{ flexDirection: 'row' }}>
                                     <SvgCanvas className="svg-canvas" />
-                                    <SvgTextEditor style={{ flex: 1, width: 0 }} />
+                                    <AttributesPanel />
                                 </SplitPane>
                             </div>
                             <Timelines style={{ height: "100%" }} />
