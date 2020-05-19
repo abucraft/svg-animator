@@ -22,7 +22,7 @@ class ToolBar extends Component<SvgEditorContextComponentProps, ToolBarState> {
         super(props)
         this.state = {
             svgRoot: null,
-            activeToolName: SelectorName,
+            activeToolName: null,
             tools: new Map<string, React.ComponentType<ToolBaseProps>>([
                 [SelectorName, ConnectedSelector],
                 [RectCreatorName, ConnectedRectCreator],

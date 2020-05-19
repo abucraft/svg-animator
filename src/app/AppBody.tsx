@@ -23,7 +23,7 @@ interface AppBodyProps extends AppState {
     changeEditMode: (mode: SvgEditMode) => void
     onCreateSvgElement: (obj: SvgNode) => void
     onDeselectAll: () => void
-    onUpdateSvgElement: (attributesMap: { [key: string]: any }) => void
+    onUpdateSvgElement: (attributesMap: AttrUpdateMap) => void
     onSelectSvgElement: (id: string) => void
     onTimelineMoveTo: (number) => void
 }
@@ -50,7 +50,7 @@ function mapDispatchToProps(dispatch) {
         onDeselectAll: () => {
             dispatch(deselectSvgElementAll())
         },
-        onUpdateSvgElement: (attributesMap: { [key: string]: any }) => {
+        onUpdateSvgElement: (attributesMap: AttrUpdateMap) => {
             dispatch(updateSvgAttribute(attributesMap))
         },
         onSelectSvgElement: (id: string) => {

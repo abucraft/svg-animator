@@ -13,9 +13,11 @@ declare global {
     }
 
     interface AttributesAndTransform { attributes?: { [key: string]: any }, transform?: Transform }
+
+    type AttrUpdateMap = { [key: string]: AttributesAndTransform }
     interface UpdateSvgAttributeAction extends Action {
         // id --> attributes
-        value: { [key: string]: AttributesAndTransform }
+        value: AttrUpdateMap
     }
 
     interface TransformSvgElementsAction extends Action {
@@ -69,7 +71,7 @@ export function deselectSvgElementAll(): Action {
 
 export const UPDATE_SVG_ATTRIBUTE = "UPDATE_SVG_ATTRIBUTE"
 
-export function updateSvgAttribute(attributesMap: { [key: string]: any }): UpdateSvgAttributeAction {
+export function updateSvgAttribute(attributesMap: AttrUpdateMap): UpdateSvgAttributeAction {
     return {
         type: UPDATE_SVG_ATTRIBUTE,
         value: attributesMap

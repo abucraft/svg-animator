@@ -62,7 +62,10 @@ module.exports = function (env) {
                     use: ['style-loader', 'css-loader', {
                         loader: 'less-loader',
                         options: {
-                            javascriptEnabled: true
+                            javascriptEnabled: true,
+                            modifyVars: {
+                                hack: `true; @import "${path.resolve(__dirname,"src")}/style/variables.less";`
+                            }
                         }
                     }]
                 }

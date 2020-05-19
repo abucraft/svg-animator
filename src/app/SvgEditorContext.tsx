@@ -13,7 +13,7 @@ declare global {
         changeEditMode: (mode: SvgEditMode) => void
         onCreateSvgElement: (obj: SvgNode) => void
         onDeselectAll: () => void
-        onUpdateSvgElement: (attributesMap: { [key: string]: any }) => void
+        onUpdateSvgElement: (attributesMap: AttrUpdateMap) => void
         onSelectSvgElement: (id: string) => void
         onTimelineMoveTo: (number) => void
     }

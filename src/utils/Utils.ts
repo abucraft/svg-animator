@@ -1,5 +1,8 @@
+import { DefaultAttributes } from "../core/SVGDefaultValues"
+import Color from "color"
+
 declare global {
-    type AttrValueType = 'number' | 'string'
+    type AttrValueType = 'number' | 'string' | 'color' | 'path'
 
     type Point2D = { x: number, y: number }
     type DeltaPoint2D = { dx: number, dy: number }
@@ -28,11 +31,12 @@ export const deepCopy = function <T>(obj: T): T {
 export function getAttributes<T extends { [key: string]: AttrValueType }>(elm: SVGElement, schema: T): { [k in keyof T]: any } {
     return Object.fromEntries(Object.entries(schema).map(([key, s]) => {
         let strValue = elm.getAttribute(key as any)
-        let value = strValue;
+        let value = strValue || DefaultAttributes[key];
         switch (s) {
             case 'number':
-                value = parseFloat(strValue) as any
+                value = (value && parseFloat(value) as any) || 0
                 break;
+
         }
         return [key, value]
     }))
@@ -62,6 +66,14 @@ function apply(value: { [key: string]: string[] }): string {
     return res;
 }
 
+export function getTransformString(transform: Transform) {
+    var transformObj = {}
+    transformObj["translate"] = [transform.x, transform.y]
+    transformObj["rotate"] = [transform.rotation, transform.xOrigin, transform.yOrigin]
+    transformObj["scale"] = [transform.scaleX, transform.scaleY]
+    return apply(transformObj)
+}
+
 export function setTransform(elm: SVGElement, transform: Transform) {
     elm._gsTransform = elm._gsTransform || { ...DefaultTransform }
     elm._gsTransform.x = transform.x === undefined ? elm._gsTransform.x : transform.x
@@ -71,11 +83,7 @@ export function setTransform(elm: SVGElement, transform: Transform) {
     elm._gsTransform.yOrigin = transform.yOrigin === undefined ? elm._gsTransform.yOrigin : transform.yOrigin
     elm._gsTransform.scaleX = transform.scaleX === undefined ? elm._gsTransform.scaleX : transform.scaleX
     elm._gsTransform.scaleY = transform.scaleY === undefined ? elm._gsTransform.scaleY : transform.scaleY
-    var transformObj = {}
-    transformObj["translate"] = [elm._gsTransform.x, elm._gsTransform.y]
-    transformObj["rotate"] = [elm._gsTransform.rotation, elm._gsTransform.xOrigin, elm._gsTransform.yOrigin]
-    transformObj["scale"] = [elm._gsTransform.scaleX, elm._gsTransform.scaleY]
-    elm.setAttribute('transform', apply(transformObj))
+    elm.setAttribute('transform', getTransformString(elm._gsTransform))
 }
 
 export const DefaultTransform: Transform = {
@@ -113,6 +121,11 @@ export function pointsToLinePath(points: Point2D[]) {
         for (let i = 1; i < points.length; i++) {
             d = d + `L ${points[i].x} ${points[i].y} `
         }
+        d = d + ' Z'
         return d
     }
+}
+
+export function ColorToRGBA(color: Color){
+    return `rgba(${color.red()},${color.green()},${color.blue()},${color.alpha()})`
 }

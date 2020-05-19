@@ -1,14 +1,11 @@
 import { Component } from 'react'
 import * as React from 'react'
-import { compose, Dispatch } from 'redux'
-import { connect } from 'react-redux'
-import { editSvgText } from '../core/Actions'
-import { SizedComponent } from '../utils/SizedComponent'
 import produce from 'immer'
 import { Subscription } from 'rxjs'
 import { WithSvgEditorContext } from '../app/SvgEditorContext'
 import { getTransform, getAttributes } from '../utils/Utils'
-import { AttributesItemRenderer } from './AttributesItemRenderer'
+import { AttributesItemRenderer, AttributeItemLayout } from './AttributesItemRenderer'
+import { EllipseAttributeTypes, RectAttributeTypes, CommonAttributeTypes } from '../core/SVGDefaultValues'
 
 type AttributesPanelState = {
     currentSvgNodeState: SvgNode
@@ -16,30 +13,36 @@ type AttributesPanelState = {
 }
 
 
-const EllipseAttributeTypes: { [key: string]: AttrValueType } = {
-    cx: "number",
-    cy: "number",
-    rx: "number",
-    ry: "number",
-    "stroke-width": "number",
-    "stroke-color": "string",
-    "fill": "string"
-}
+const CommonAttributeLayout: AttributeItemLayout[] = [
+    "fill",
+    {
+        label: "stroke",
+        attribute: "stroke",
+        children: [{
+            label: null,
+            attribute: "stroke-width"
+        }]
+    }
+]
 
-const EllipseAttributeLayout = [
-    ["cx", "cy"],
-    ["rx", "ry"],
-    ["fill"],
-    ["stroke-width"],
-    ["stroke-color"]
+const EllipseAttributeLayout: AttributeItemLayout[] = [
+    { children: ["rx", "ry"] },
+    ...CommonAttributeLayout
+]
+
+const RectAttributeLayout: AttributeItemLayout[] = [
+    { children: ["width", "height"] },
+    ...CommonAttributeLayout
 ]
 
 const AttributesTypeMap = {
-    "ellipse": EllipseAttributeTypes
+    "ellipse": EllipseAttributeTypes,
+    "rect": RectAttributeTypes
 }
 
-const AttributesLayout: { [key in keyof typeof AttributesTypeMap]: string[][] } = {
-    "ellipse": EllipseAttributeLayout
+const AttributesLayoutMap: { [key in keyof typeof AttributesTypeMap]: AttributeItemLayout[] } = {
+    "ellipse": EllipseAttributeLayout,
+    "rect": RectAttributeLayout
 }
 
 
@@ -67,10 +70,16 @@ class AttributesPanel extends Component<SvgEditorContextComponentProps, Attribut
                     let attributes = {}
                     switch (node.tagName) {
                         case "ellipse":
-                            attributes = getAttributes(node, EllipseAttributeTypes)
+                        case "rect":
+                            attributes = getAttributes(node, AttributesTypeMap[node.tagName])
                             break;
+                        default:
+                            attributes = getAttributes(node, CommonAttributeTypes)
+
                     }
                     Object.assign(draft.currentSvgNodeState.attributes, attributes)
+                } else {
+                    draft.currentSvgNodeState = null
                 }
             }
         })
@@ -86,17 +95,43 @@ class AttributesPanel extends Component<SvgEditorContextComponentProps, Attribut
         this.svgSubscription.unsubscribe()
     }
 
+    onChangeAttribute = (value: any, key: string) => {
+        let elm = this.state.svgRoot.getElementById(this.props.editorContext.selectedElementIds[0])
+        elm.setAttribute(key, value)
+        this.setState(produce(this.state, draft => {
+            draft.currentSvgNodeState.attributes[key] = value
+        }))
+    }
+
+    onChangeAttributeComplete = (value: any, key: string) => {
+        this.props.editorContext.onUpdateSvgElement({
+            [this.props.editorContext.selectedElementIds[0]]: {
+                attributes: {
+                    [key]: value
+                }
+            }
+        })
+    }
+
     renderAttributesRenderer() {
         let nodeName = this.state.currentSvgNodeState?.nodeName
-        if (Object.keys(AttributesLayout).includes(nodeName)) {
-            return <AttributesItemRenderer attributeTypes={AttributesTypeMap[nodeName]} layout={AttributesLayout[nodeName]} dataSource={this.state.currentSvgNodeState.attributes} />
-        } else {
-            return null
+        let attributeTypes = CommonAttributeTypes
+        let attributeLayout = CommonAttributeLayout
+        if (Object.keys(AttributesLayoutMap).includes(nodeName)) {
+            attributeTypes = AttributesTypeMap[nodeName]
+            attributeLayout = AttributesLayoutMap[nodeName]
         }
+        return <AttributesItemRenderer
+            attributeTypes={attributeTypes}
+            layout={attributeLayout}
+            dataSource={this.state.currentSvgNodeState.attributes}
+            onChange={this.onChangeAttribute}
+            onChangeComplete={this.onChangeAttributeComplete}
+        />
     }
 
     render() {
-        return <div style={{width: "100%", height: "100%", overflow: "auto"}}>
+        return <div style={{ width: "100%", height: "100%", overflow: "auto" }}>
             {this.state.currentSvgNodeState && <div>
                 <h2>Attributes</h2>
                 {this.renderAttributesRenderer()}

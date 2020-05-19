@@ -1,5 +1,5 @@
 import { setTransform } from "../utils/Utils";
-import { number } from "prop-types";
+import Color from 'color';
 
 interface PT<T> {
     seek(time: number): T
@@ -16,6 +16,37 @@ class NumberPT implements PT<number>{
     }
     seek(time: number) {
         return ((this.toValue - this.fromValue) * Math.min(Math.max(time, 0), this.duration) / this.duration) + this.fromValue
+    }
+}
+
+class ColorPT implements PT<string>{
+    duration: number
+    rgbaPTs: NumberPT[]
+    fromValue: string
+    toValue: string
+
+    constructor(duration: number, fromValue: string, toValue: string) {
+        this.duration = duration
+        this.fromValue = fromValue
+        this.toValue = toValue
+        let fromColor = Color(fromValue)
+        let toColor = Color(toValue)
+        this.rgbaPTs = [
+            new NumberPT(duration, fromColor.red(), toColor.red()),
+            new NumberPT(duration, fromColor.green(), toColor.green()),
+            new NumberPT(duration, fromColor.blue(), toColor.blue()),
+            new NumberPT(duration, fromColor.alpha(), toColor.alpha())
+        ]
+    }
+
+    seek(time: number) {
+        if (time <= 0) {
+            return this.fromValue
+        }
+        if (time >= this.duration) {
+            return this.toValue
+        }
+        return `rgba(${this.rgbaPTs[0].seek(time)},${this.rgbaPTs[1].seek(time)},${this.rgbaPTs[2].seek(time)},${this.rgbaPTs[3].seek(time)})`
     }
 }
 
@@ -61,7 +92,15 @@ export class Tween {
                 case "attr":
                     Object.keys(fromValue[k]).forEach((attrk) => {
                         attrPtGroup = (attrPtGroup || { type: "attr", ptMap: {}, currentValues: {} })
-                        attrPtGroup.ptMap[attrk] = new NumberPT(duration, fromValue[k][attrk], toValue[k][attrk])
+                        switch (attrk) {
+                            case "fill":
+                            case "stroke":
+                                attrPtGroup.ptMap[attrk] = new ColorPT(duration, fromValue[k][attrk], toValue[k][attrk])
+                                break;
+                            default:
+                                attrPtGroup.ptMap[attrk] = new NumberPT(duration, fromValue[k][attrk], toValue[k][attrk])
+                                break;
+                        }
                     })
                     break;
             }

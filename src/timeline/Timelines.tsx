@@ -11,17 +11,20 @@ import { SvgEditorContext, WithSvgEditorContext } from '../app/SvgEditorContext'
 import { DefaultTransform } from '../utils/Utils';
 import { Tween } from '../animation/Tween';
 import produce from 'immer';
+import { DefaultAttributes } from '../core/SVGDefaultValues';
 
 declare global {
 
-    
+
     type FrameValue = {
         from: any
         to: any
     }
 
+    type SvgAnimationFrameType = "translate" | "rotate" | "attributes" | "scale"
+
     type SvgAnimationFrame = {
-        type?: "translate" | "rotate" | "attributes" | "scale"
+        type?: SvgAnimationFrameType
         value: FrameValue
         tweenLite?: Tween
         target?: any
@@ -219,7 +222,7 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                             fromValue = stateStack[attr].value
                         } else {
                             localPrevTime = prevTime
-                            fromValue = initState.attributes[attr]
+                            fromValue = initState.attributes[attr] || DefaultAttributes[attr]
                         }
                         // update stateStack
                         stateStack[attr] = {

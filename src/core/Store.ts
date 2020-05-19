@@ -2,10 +2,11 @@ import { RefObject } from 'react'
 import { Subject, BehaviorSubject } from 'rxjs'
 import { createStore, combineReducers, applyMiddleware, Store } from 'redux'
 import { EDIT_SVG_TEXT, MOVE_TIMELINE, ADD_ALERT, CLEAR_ALERT, addAlert, SELECT_SVG_ELEMENT, DESELECT_SVG_ELEMENT_ALL, UPDATE_SVG_ATTRIBUTE, CHANGE_EDIT_MODE, CREATE_SVG_NODE } from './Actions'
-import { svgToJson, initialSvg, nodeToJson, copySvgFields, compareSvgFields, svgJsonToText } from './SVGJson'
+import { svgToJson, nodeToJson, copySvgFields, compareSvgFields, svgJsonToText } from './SVGJson'
 import { onErrorResumeNext } from 'rxjs';
 import { composeWithDevTools } from 'redux-devtools-extension'
 import produce from 'immer';
+import { getAttributes } from '../utils/Utils'
 
 declare global {
     type SvgEditMode = 'select' | 'path-editing' | 'path-creating' | 'creating'
@@ -32,17 +33,13 @@ function getElementId() {
     return `element${elementIncreamentalId}`
 }
 
-const initSvgJson = svgToJson(initialSvg)
-
-initSvgJson.attributes.id = getElementId()
-
 const initialState: SvgState = {
     editMode: 'select',
-    svgStates: new Map([[getElementId(), new Map([[0, initSvgJson]])]]),
-    selectedElementIds: [getElementId()],
+    svgStates: new Map(),
+    selectedElementIds: [],
     currentTime: 0,
     totalTime: 3,
-    currentSvgText: initialSvg,
+    currentSvgText: "",
 }
 
 function combineActionReducers(actionReducerMap: Map<string, any>, initailState = {}) {

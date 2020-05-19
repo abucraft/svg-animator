@@ -1,10 +1,68 @@
 import { Timelines } from "../timeline/Timelines";
-import { SVG_XMLNS } from "../utils/Utils";
+import { SVG_XMLNS, getTransformString, ColorToRGBA, pointsToLinePath } from "../utils/Utils";
+import { AttributeTypes } from "../core/SVGDefaultValues";
+import Color from "color";
+import { animationFrame } from "rxjs/internal/scheduler/animationFrame";
 
 
 export const NoopAnimationFactory: AnimationFactory = {
     createFrame: () => null,
     createTransformFrame: () => null
+}
+
+function calculateKeyTimes(keyFrames: number[]) {
+    let start = keyFrames[0]
+    let duration = keyFrames[keyFrames.length - 1] - keyFrames[0]
+    let keyTimes = keyFrames.map(t => (t - start) / duration)
+    return { start, duration, keyTimes }
+}
+
+function getAttributesAnimate(attr: string, keyFrames: number[], values: string[]) {
+    let { start, duration, keyTimes } = calculateKeyTimes(keyFrames)
+    return `<animate 
+                attributeType="XML" 
+                attributeName="${attr}" 
+                from="${values[0]}" 
+                to="${values[values.length - 1]}"
+                begin="${start}s" 
+                dur="${duration}s"
+                values="${values.join(';')}"
+                keyTimes="${keyTimes.join(';')}"
+                fill="freeze"/>`
+}
+
+function getTransformAnimate(transformType: string, keyFrames: number[], values: string[]) {
+    let { start, duration, keyTimes } = calculateKeyTimes(keyFrames)
+    return `<animateTransform attributeName="transform"
+                attributeType="XML"
+                type="${transformType}"
+                from="${values[0]}"
+                to="${values[values.length - 1]}"
+                begin="${start}s"
+                dur="${duration}s"
+                values="${values.join(';')}"
+                keyTimes="${keyTimes.join(';')}"
+                fill="freeze"
+                additive="sum"/>`
+}
+
+function isContainingTransformAnimation(svgAnimation?: Map<string, Frame[]>) {
+    return svgAnimation && Array.from(svgAnimation.keys()).find(k => {
+        return k.includes("translate") || k.includes("rotate") || k.includes("scale")
+    })
+}
+
+function attributeToString(attr: string, value) {
+    switch (AttributeTypes[attr]) {
+        case "color":
+            return ColorToRGBA(Color(value))
+        case "path":
+            return pointsToLinePath(value)
+        case "number":
+            return value.toString()
+        default:
+            return value
+    }
 }
 
 export function exportToSvgString(svgStates: SvgStateMap): string {
@@ -16,41 +74,54 @@ export function exportToSvgString(svgStates: SvgStateMap): string {
         keys.sort((v1, v2) => v1 - v2)
         let initState = svgState.get(keys[0]);
         let svg = `<${initState.nodeName}`
-        Object.keys(initState.attributes).forEach(key => {
-            svg += ` ${key}="${initState.attributes[key]}"`
-        })
-        svg += ">"
         let anime = animations.get(id)
+        Object.keys(initState.attributes).forEach(key => {
+            svg += ` ${key}="${attributeToString(key, initState.attributes[key])}"`
+        })
+        svg += `${isContainingTransformAnimation(anime) ? "" : ` transform="${getTransformString(initState.transform)}"`}`
+        svg += ">"
+
         if (anime) {
             anime.forEach((animeFrames, attr) => {
-                animeFrames.forEach((frame) => {
+                let keyFrames = []
+                let values = []
+                let animeType = "attributes" as SvgAnimationFrameType
+                animeFrames.forEach((frame, index) => {
                     let animeFrame = frame[2]
+                    let fromTime = frame[0]
+                    let toTime = frame[1]
+                    let fromValue = animeFrame.value.from, toValue = animeFrame.value.to;
+                    animeType = animeFrame.type
                     if (animeFrame.type === "attributes") {
-                        svg += `<animate attributeType="XML" attributeName="${attr}" from="${animeFrame.value.from}" to="${animeFrame.value.to}" begin="${frame[0]}s" dur="${frame[1] - frame[0]}s"/>`
+                        fromValue = attributeToString(attr, fromValue)
+                        toValue = attributeToString(attr, toValue)
                     } else if (animeFrame.type === "rotate") {
-                        let fromValue = animeFrame.value.from
-                        let toValue = animeFrame.value.to
-                        svg += `<animateTransform attributeName="transform"
-                                                attributeType="XML"
-                                                type="rotate"
-                                                from="${fromValue.rotation} ${fromValue.xOrigin} ${fromValue.yOrigin}"
-                                                to="${toValue.rotation} ${toValue.xOrigin} ${toValue.yOrigin}"
-                                                begin="${frame[0]}s"
-                                                dur="${frame[1] - frame[0]}s"
-                                                additive="sum"/>`
+                        fromValue = `${fromValue.rotation} ${fromValue.xOrigin} ${fromValue.yOrigin}`
+                        toValue = `${toValue.rotation} ${toValue.xOrigin} ${toValue.yOrigin}`
                     } else if (animeFrame.type === "translate") {
-                        let fromValue = animeFrame.value.from
-                        let toValue = animeFrame.value.to
-                        svg += `<animateTransform attributeName="transform"
-                                                attributeType="XML"
-                                                type="translate"
-                                                from="${fromValue.x} ${fromValue.y}"
-                                                to="${toValue.x} ${toValue.y}"
-                                                begin="${frame[0]}s"
-                                                dur="${frame[1] - frame[0]}s"
-                                                additive="sum"/>`
+                        fromValue = `${fromValue.x} ${fromValue.y}`
+                        toValue = `${toValue.x} ${toValue.y}`
+                    } else if (animeFrame.type === "scale") {
+                        fromValue = `${fromValue.scaleX} ${fromValue.scaleY}`
+                        toValue = `${fromValue.scaleX} ${fromValue.scaleY}`
                     }
+                    if (keyFrames[keyFrames.length - 1] !== fromTime) {
+                        keyFrames.push(fromTime)
+                        values.push(fromValue)
+                    }
+                    keyFrames.push(toTime)
+                    values.push(toValue)
                 })
+                switch (animeType) {
+                    case "translate":
+                    case "rotate":
+                    case "scale":
+                        svg += getTransformAnimate(animeType, keyFrames, values)
+                        break;
+                    case "attributes":
+                        svg += getAttributesAnimate(attr, keyFrames, values)
+                        break;
+                }
             })
         }
         svg += `</${initState.nodeName}>`

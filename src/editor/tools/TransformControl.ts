@@ -175,7 +175,7 @@ export class TransformControl {
     }
 
     onRotateEnd = () => {
-        let attributesMap: AttributesAndTransform = {}
+        let attributesMap: AttrUpdateMap = {}
         this.selectSvgElements.forEach(elm => {
             attributesMap[elm.id] = {
                 attributes: {},
@@ -186,7 +186,7 @@ export class TransformControl {
     }
 
     onResizeEnd = () => {
-        let attributesMap: AttributesAndTransform = {}
+        let attributesMap: AttrUpdateMap = {}
         this.selectSvgElements.forEach(elm => {
             attributesMap[elm.id] = {}
             if (elm.nodeName === 'ellipse') {
