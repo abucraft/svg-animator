@@ -45,6 +45,7 @@
     "@types/react-color": "^3.0.1",
     "@types/react-dom": "16.8.4",
     "@types/react-redux": "7.0.3",
+    "core-js": "^3.6.5",
     "css-loader": "0.28.10",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
@@ -100,11 +101,9 @@
     "watchPlugins": [
       "<rootDir>/node_modules/jest-watch-typeahead/filename.js",
       "<rootDir>/node_modules/jest-watch-typeahead/testname.js"
-    ]
-  },
-  "babel": {
-    "presets": [
-      "react-app"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.js"
     ]
   }
 }
