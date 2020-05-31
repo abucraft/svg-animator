@@ -2,22 +2,42 @@ import * as React from 'react'
 import { Component } from 'react'
 import { Tooltip } from 'antd'
 import "./FrameHolder.less"
+import { ConnectSvgEditorContext } from '../app/SvgEditorContext'
 
-declare global {
-    interface FrameHolderProps {
-        attribute: string
-        left: number
-        width: number
+type FrameHolderProps = {
+    attribute: string
+    start: number
+    end: number
+    totalTime: number
+    scale: number
+    frame: SvgAnimationFrame
+} & FrameHolderPropsFromContext
+
+type FrameHolderPropsFromContext = {
+    selectedFrame: SelectedSvgAnimationFrame
+    onSelectAnimationFrame: (frame: SelectedSvgAnimationFrame) => void
+}
+
+function mapContext(editorContext: SvgEditorContextType): FrameHolderPropsFromContext {
+    return {
+        selectedFrame: editorContext.selectedFrame,
+        onSelectAnimationFrame: editorContext.onSelectAnimationFrame
     }
 }
-export default class FrameHolder extends Component<FrameHolderProps> {
+class FrameHolder extends React.PureComponent<FrameHolderProps> {
     constructor(props) {
         super(props)
     }
 
     render() {
-        return (<Tooltip title={this.props.attribute}>
-            <div className="frame-holder" style={{ left: `${this.props.left * 100}%`, width: `${this.props.width * 100}%` }}></div>
-        </Tooltip>)
+        let left = this.props.start / this.props.totalTime
+        let right = this.props.end / this.props.totalTime
+        let width = right - left
+        return <div className="frame-holder" style={{ left: `${left * 100}%`, width: `${width * 100}%` }}>
+            <div className="left handle"></div>
+            <div className="right handle"></div>
+        </div>
     }
 }
+
+export default ConnectSvgEditorContext(mapContext)(FrameHolder)

@@ -21,11 +21,14 @@ declare global {
 
     type SvgAnimationFrameType = "translate" | "rotate" | "attributes" | "scale"
 
+    type SvgAnimationFrameCalcMode = "discrete" | "linear" | "paced" | "spline"
+
     type SvgAnimationFrame = {
         type?: SvgAnimationFrameType
         value: FrameValue
         tweenLite?: Tween
         target?: any
+        calcMode?: SvgAnimationFrameCalcMode
     }
 
     type Frame = [number, number, SvgAnimationFrame]

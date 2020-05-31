@@ -68,7 +68,7 @@ function applyPTGroup(target: HTMLElement, ptGroup: PTGroup) {
 }
 
 export class Tween {
-    target: HTMLElement
+    private target: HTMLElement
     duration: number
     ptGroups: PTGroup[]
     constructor(target: HTMLElement, duration: number, fromValue: object, toValue: object) {

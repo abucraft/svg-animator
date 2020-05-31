@@ -1,4 +1,4 @@
-@frame-height: 20px;
+@import '../style/variables.less';
 
 .frame-meta {
     height: @frame-height;
@@ -16,8 +16,32 @@
 .frame-holder {
     position: absolute;
     height: @frame-height;
-    border-width: 1px 1px 0 0;
-    border-style: solid;
-    border-color: #333333;
     background-color: chocolate;
+    border-color: white;
+    border-style: solid;
+    border-width: 0.5px 0px 0.5px 0px;
+
+    >.handle {
+        width: sqrt(2)* @frame-height / 2;
+        height: sqrt(2)* @frame-height / 2;
+        position: absolute;
+        top: (@frame-height / 2) - (sqrt(2) * @frame-height / 4);
+        transform: rotateZ(45deg);
+        background-color: chocolate;
+        border-color: white;
+        border-style: solid;
+
+        &.left {
+            left: -(sqrt(2) * @frame-height / 4);
+            // box-shadow: -1px 1px 2px 0px black;
+            border-width: 0px 0px 1px 1px;
+
+        }
+
+        &.right {
+            right: -(sqrt(2) * @frame-height / 4);
+            // box-shadow: 1px -1px 2px 0px black;
+            border-width: 1px 1px 0px 0px;
+        }
+    }
 }

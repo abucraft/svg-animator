@@ -50,6 +50,12 @@ class TimeRuler extends React.PureComponent<TimeRulerProps> {
         return cursors
     }
 
+    getMaxScrollLeft() {
+        let pxSecond = pixelPerSecond(this.props.scale)
+        let scrollWidth = this.props.totalTime * pxSecond
+        return scrollWidth - (this.props.width - this.getTotalTimeLineMargin() - pxSecond)
+    }
+
     onMouseDown = (event: React.MouseEvent) => {
         this.point = { x: event.clientX, y: event.clientY }
         this.startScrollLeft = this.props.scrollLeft
@@ -58,10 +64,8 @@ class TimeRuler extends React.PureComponent<TimeRulerProps> {
     }
 
     onMouseMove = (event: MouseEvent) => {
-        let dx = this.point.x - event.clientX
-        let pxSecond = pixelPerSecond(this.props.scale)
-        let scrollWidth = this.props.totalTime * pxSecond
-        let scrollChangeRight = Math.max(0, scrollWidth - this.startScrollLeft - (this.props.width - this.getTotalTimeLineMargin() - pxSecond))
+        let dx = this.point.x - event.clientX;
+        let scrollChangeRight = Math.max(0, this.getMaxScrollLeft() - this.startScrollLeft)
         dx = Math.max(-this.startScrollLeft, Math.min(dx, scrollChangeRight))
         this.props.onChange && this.props.onChange(this.props.scale, this.startScrollLeft + dx)
     }
@@ -82,12 +86,12 @@ class TimeRuler extends React.PureComponent<TimeRulerProps> {
         let scale, scrollChange
         if (event.deltaY < 0) {
             scale = Math.max(MinTimelineScale, this.props.scale / 1.1)
-            scrollChange = delta/1.1 -delta
+            scrollChange = delta / 1.1 - delta
         } else {
             scale = Math.min(MaxTimelineScale, this.props.scale * 1.1)
             scrollChange = delta * 1.1 - delta
         }
-        this.props.onChange(scale, Math.max(0, this.props.scrollLeft + scrollChange))
+        this.props.onChange(scale, Math.max(0, Math.min(this.getMaxScrollLeft(), this.props.scrollLeft + scrollChange)))
     }
 
     render() {
@@ -105,8 +109,8 @@ class TimeRuler extends React.PureComponent<TimeRulerProps> {
                         style={{
                             height: this.props.height,
                             position: "absolute",
-                            width: "100%",
-                            left:  this.props.totalTime * pixelPerSecond(this.props.scale)
+                            width: 10000,
+                            left: this.props.totalTime * pixelPerSecond(this.props.scale)
                         }}
                     >
 

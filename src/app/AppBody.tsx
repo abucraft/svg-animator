@@ -70,6 +70,7 @@ class AppBody extends Component<AppBodyProps, AppBodyState> {
                 editMode: this.props.svg.editMode,
                 svgStates: this.props.svg.svgStates,
                 selectedElementIds: this.props.svg.selectedElementIds,
+                selectedFrame: null,
                 svgCreatedSignal: new BehaviorSubject(null),
                 animationSignal: new Subject(),
                 currentTime: this.props.svg.currentTime,
@@ -79,9 +80,17 @@ class AppBody extends Component<AppBodyProps, AppBodyState> {
                 onDeselectAll: this.props.onDeselectAll,
                 onUpdateSvgElement: this.props.onUpdateSvgElement,
                 onSelectSvgElement: this.props.onSelectSvgElement,
-                onTimelineMoveTo: this.props.onTimelineMoveTo
+                onTimelineMoveTo: this.props.onTimelineMoveTo,
+                onSelectAnimationFrame: this.onSelectAnimationFrame
             }
         }
+    }
+
+    onSelectAnimationFrame = (frame: SelectedSvgAnimationFrame) => {
+        this.props.onSelectSvgElement(frame.id)
+        this.setState(produce(this.state, draft => {
+            draft.editorContext.selectedFrame = frame
+        }))
     }
 
     static getDerivedStateFromProps(props: AppBodyProps, state: AppBodyState) {

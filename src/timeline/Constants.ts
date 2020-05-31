@@ -5,8 +5,9 @@ export const TimeToPixelScale = 0.12
 // This is the base time for measuring the length of time ruler or frame list
 export const BaseTimeSeconds = 60
 
-export const TimelineMarginLeft = 8
+export const TimelineMarginLeft = 10
 export const TimelineMarginRight = ScrollBarSize
+export const FrameHeight = 20
 
 const TimeDivides = [0.2, 1, 5, 10, 24, 60]
 const MinGraduationGap = 10

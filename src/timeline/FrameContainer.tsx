@@ -147,32 +147,57 @@ type FrameListProps = {
 
 class FrameList extends React.PureComponent<FrameListProps>{
     render() {
-        return <div className="frame-list" style={{
-            width: this.props.totalTime * pixelPerSecond(this.props.scale),
-            left: this.props.timelineMarginLeft - this.props.scrollLeft,
-            position: "absolute"
-        }}>
-            {
-                [...this.props.animations.entries()].map(([id, animations]) => {
-                    return (<div key={id}>
-                        <div className="frame-meta"></div>
-                        {
-                            [...animations.entries()].map(([attr, attrAnimations]) => {
-                                return (<div key={attr} className="frame-wrapper">
-                                    {
-                                        attrAnimations.map((frame) => {
-
-                                            let left = frame[0] / this.props.totalTime
-                                            let right = frame[1] / this.props.totalTime
-                                            return (< FrameHolder key={`${frame[0]},${frame[1]}`} left={left} width={right - left} attribute={attr} />)
-                                        })
-                                    }
-                                </div>)
-                            })
-                        }
-                    </div>)
-                })
-            }
-        </div>
+        let leftOffset = this.props.timelineMarginLeft - this.props.scrollLeft
+        return <React.Fragment>
+            <div
+                className="time-ruler-grey-out"
+                style={{
+                    height: "100%",
+                    position: "absolute",
+                    width: 10000,
+                    left: leftOffset + this.props.totalTime * pixelPerSecond(this.props.scale)
+                }}
+            ></div>
+            <div className="frame-list" style={{
+                width: this.props.totalTime * pixelPerSecond(this.props.scale),
+                left: leftOffset,
+                position: "absolute"
+            }}>
+                <div
+                    className="time-ruler-grey-out"
+                    style={{
+                        height: "100%",
+                        position: "absolute",
+                        width: 10000,
+                        left: this.props.totalTime * pixelPerSecond(this.props.scale)
+                    }}
+                ></div>
+                {
+                    [...this.props.animations.entries()].map(([id, animations]) => {
+                        return (<div key={id}>
+                            <div className="frame-meta"></div>
+                            {
+                                [...animations.entries()].map(([attr, attrAnimations]) => {
+                                    return (<div key={attr} className="frame-wrapper">
+                                        {
+                                            attrAnimations.map((frame) => {
+                                                return (< FrameHolder
+                                                    key={`${frame[0]},${frame[1]}`}
+                                                    start={frame[0]}
+                                                    end={frame[1]}
+                                                    totalTime={this.props.totalTime}
+                                                    scale={this.props.scale}
+                                                    frame={frame[2]}
+                                                    attribute={attr} />)
+                                            })
+                                        }
+                                    </div>)
+                                })
+                            }
+                        </div>)
+                    })
+                }
+            </div>
+        </React.Fragment>
     }
 }
