@@ -1,14 +1,29 @@
+@import "../style/variables.less";
+
 .time-cursor {
     position: absolute;
     user-select: none;
     height: 100%;
-    width: 10px;
 }
 
 .time-cursor>.cursor {
-    background-color: grey;
-    width: 2px;
-    height: 100%;
+    position: absolute;
+    width: 10px;
+    top: @time-ruler-height;
+    bottom: 0px;
+
+    >.cursor-icon {
+        position: absolute;
+        top: -20px;
+        left: -4.5px;
+    }
+
+    >.cursor-bar {
+        position: absolute;
+        height: 100%;
+        width: 1px;
+        background-color: grey;
+    }
 }
 
 .time-cursor:hover {

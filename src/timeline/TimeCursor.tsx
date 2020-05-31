@@ -2,6 +2,7 @@ import { Component, RefObject } from 'react'
 import * as React from 'react'
 import './TimeCursor.less'
 import { pixelPerSecond, alignGraduations } from './Constants'
+import TimeCursorIcon from './TimeCursorIcon.svg'
 
 declare global {
     interface TimeCursorState {
@@ -68,9 +69,14 @@ export default class TimeCursor extends Component<TimeCursorProps> {
 
     render() {
         return (
-            <div className="time-cursor" onMouseDown={this.onMouseDown} style={{ left: this.props.time * pixelPerSecond(this.props.scale) + this.props.timelineMarginLeft - this.props.scrollLeft }} >
+            <div className="time-cursor" style={{ left: this.props.time * pixelPerSecond(this.props.scale) + this.props.timelineMarginLeft - this.props.scrollLeft }} >
                 <div className={"overlay " + (this.mousedown ? "visible" : "")}></div>
-                <div className="cursor"></div>
+                <div className="cursor" onMouseDown={this.onMouseDown}>
+                    <div className="cursor-icon">
+                        <TimeCursorIcon width="10" height="21" />
+                    </div>
+                    <div className="cursor-bar"></div>
+                </div>
             </div>
         )
     }

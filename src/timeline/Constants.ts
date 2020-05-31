@@ -8,6 +8,7 @@ export const BaseTimeSeconds = 60
 export const TimelineMarginLeft = 10
 export const TimelineMarginRight = ScrollBarSize
 export const FrameHeight = 20
+export const TimeRulerHeight = 40
 
 const TimeDivides = [0.2, 1, 5, 10, 24, 60]
 const MinGraduationGap = 10

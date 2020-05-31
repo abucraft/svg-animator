@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid meet" viewBox="179.712400163923 178.918736049107 24 46.14285714285725" width="20" height="42.14">
+    <defs>
+        <path d="M200.71 209.92L190.71 222.06L180.71 209.92L180.71 179.92L200.71 179.92L200.71 209.92Z" id="a21Hr8lVSy"></path>
+    </defs>
+    <g>
+        <g>
+            <use xlink:href="#a21Hr8lVSy" opacity="1" fill="#ffffff" fill-opacity="1"></use>
+            <g>
+                <use xlink:href="#a21Hr8lVSy" opacity="1" fill-opacity="0" stroke="#000000" stroke-width="2" stroke-opacity="1"></use>
+            </g>
+        </g>
+    </g>
+</svg>

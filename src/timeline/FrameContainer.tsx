@@ -6,7 +6,7 @@ import FrameHolder from './FrameHolder'
 import TimeRuler from './TimeRuler'
 import TimeCursor from './TimeCursor'
 import { CustomScrollContainer } from './CustomScrollContainer'
-import { TimelineMarginLeft, TimelineMarginRight, BaseTimeSeconds, pixelPerSecond } from './Constants'
+import { TimelineMarginLeft, TimelineMarginRight, BaseTimeSeconds, pixelPerSecond, TimeRulerHeight } from './Constants'
 declare global {
     interface FrameContainerProps {
         totalTime: number
@@ -76,7 +76,7 @@ export default class FrameContainer extends Component<FrameContainerProps, Frame
         return (
             <div className={"flex-row"} style={{ height: "100%" }}>
                 <div className="flex-column" style={{ width: 200 }}>
-                    <div style={{ height: 40 }}>
+                    <div style={{ height: TimeRulerHeight }}>
                         <PlayStopButton onPlay={this.props.onPlay} playing={this.props.playing} />
                     </div>
                     <CustomScrollContainer style={{ flex: 1 }} scrollTop={this.state.scrollTop} onScroll={this.onAnimationVerticalScroll}>
@@ -85,7 +85,7 @@ export default class FrameContainer extends Component<FrameContainerProps, Frame
                 </div>
                 <div className="flex-column" ref={this.containerRef} style={{ overflowX: "hidden", flex: 1, position: "relative" }}>
                     <TimeRuler
-                        wrapperStyle={{ height: 40 }}
+                        wrapperStyle={{ height: TimeRulerHeight }}
                         totalTime={this.props.totalTime}
                         scale={this.state.scale}
                         scrollLeft={this.state.scrollLeft}
