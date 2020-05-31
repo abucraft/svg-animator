@@ -5,8 +5,6 @@ import { connect } from 'react-redux'
 import { compose } from 'redux';
 
 import FrameContainer from './FrameContainer'
-import { moveTimeline } from '../core/Actions'
-import { SizedComponent } from '../utils/SizedComponent'
 import { SvgEditorContext, WithSvgEditorContext } from '../app/SvgEditorContext';
 import { DefaultTransform } from '../utils/Utils';
 import { Tween } from '../animation/Tween';
@@ -47,7 +45,7 @@ interface TimelineState {
     svgAnimations: SvgAnimations
     innerTime: number
     start: number
-    scale: number
+    playing: boolean
 }
 
 export const TweenAnimationFactory: AnimationFactory = {
@@ -88,8 +86,8 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
         this.state = {
             svgAnimations: new Map(),
             start: 0,
-            scale: 1,
-            innerTime: this.props.editorContext.currentTime
+            innerTime: this.props.editorContext.currentTime,
+            playing: false
         }
     }
 
@@ -270,12 +268,19 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                 })
             })
         });
+        this.setState({ innerTime: time })
         this.props.editorContext.animationSignal.next(time);
     }
 
     animationHandle = 0
     playTime = 0
     handlePlay = (play: boolean) => {
+        let stopPlayFn = () => {
+            cancelAnimationFrame(this.animationHandle)
+            this.animationHandle = 0
+            this.props.editorContext.onTimelineMoveTo(this.playTime)
+            this.setState({ playing: false })
+        }
         if (play && this.animationHandle === 0) {
             let startTime = performance.now()
             this.playTime = this.state.innerTime
@@ -283,15 +288,22 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                 let diffTime = time - startTime + this.playTime * 1000
                 startTime = time
                 this.playTime = diffTime / 1000
+                let stopPlay = false
+                if (this.playTime >= this.props.editorContext.totalTime) {
+                    this.playTime = this.props.editorContext.totalTime
+                    stopPlay = true
+                }
                 this.onTimelineMove(this.playTime)
-                this.setState({ innerTime: this.playTime })
-                this.animationHandle = requestAnimationFrame(playAnimation)
+                if (stopPlay) {
+                    stopPlayFn()
+                } else {
+                    this.animationHandle = requestAnimationFrame(playAnimation)
+                }
             }
             this.animationHandle = requestAnimationFrame(playAnimation)
+            this.setState({ playing: true })
         } else if (this.animationHandle) {
-            cancelAnimationFrame(this.animationHandle)
-            this.animationHandle = 0
-            this.props.editorContext.onTimelineMoveTo(this.playTime)
+            stopPlayFn()
         }
     }
 
@@ -319,12 +331,12 @@ export class Timelines extends Component<TimelineProps, TimelineState> {
                 totalTime={this.props.editorContext.totalTime}
                 innerTime={this.state.innerTime}
                 start={this.state.start}
-                scale={this.state.scale}
                 svgAnimations={this.state.svgAnimations}
                 onPlay={this.handlePlay}
+                playing={this.state.playing}
             />
         )
     }
 }
 
-export default SizedComponent(WithSvgEditorContext(Timelines))
+export default WithSvgEditorContext(Timelines)

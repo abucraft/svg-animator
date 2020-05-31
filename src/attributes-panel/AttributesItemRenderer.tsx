@@ -67,7 +67,7 @@ export class AttributesItemRenderer extends Component<AttributesItemRendererProp
                     break;
             }
         }
-        let childrenElms = <Fragment>
+        let childrenElms = <Fragment key={label}>
             {content}
             {children && children.map(crow => {
                 return this.renderAttributeRow(crow)

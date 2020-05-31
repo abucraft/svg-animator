@@ -1,74 +1,76 @@
 import { Component, RefObject } from 'react'
 import * as React from 'react'
 import './TimeCursor.less'
+import { pixelPerSecond, alignGraduations } from './Constants'
 
 declare global {
     interface TimeCursorState {
-        position: number
-        min: number
+        mousedown: boolean
     }
     interface TimeCursorProps {
-        position: number
+        time: number
         onMoveTo: (number) => void
         onMove: (number) => void
-        min?: number
+        totalTime: number
+        scale: number
+        timelineMarginLeft: number
+        scrollLeft: number
+        alignGraduations: boolean
     }
 }
 
-export default class TimeCursor extends Component<TimeCursorProps, TimeCursorState> {
-    cursorRef: RefObject<HTMLDivElement>
+export default class TimeCursor extends Component<TimeCursorProps> {
     mousedown: boolean
     startX: number
+    startTime: number
     constructor(props) {
         super(props)
-        this.state = {
-            position: props.position,
-            min: props.min ? props.min : 0
-        }
-        this.cursorRef = React.createRef()
     }
 
     onMouseDown = (event) => {
         if (!this.mousedown) {
             this.mousedown = true
             this.startX = event.clientX
+            this.startTime = this.props.time
             window.addEventListener('mousemove', this.onMouseMove)
             window.addEventListener('mouseup', this.onMouseUp)
         }
     }
 
+    getMoveTime(event) {
+        let position = event.clientX - this.startX
+        let time = this.startTime + (position / pixelPerSecond(this.props.scale))
+        time = Math.max(0, Math.min(time, this.props.totalTime))
+        if (this.props.alignGraduations) {
+            time = alignGraduations(time, this.props.scale)
+        }
+        return time
+    }
+
     onMouseMove = (event) => {
         if (this.mousedown) {
-            let position = event.clientX - this.startX + this.state.position
-            position = position > this.state.min ? position : this.state.min
-            this.props.onMove(position)
-            this.cursorRef.current.style.left = position + 'px'
+            this.props.onMove(this.getMoveTime(event))
         }
     }
 
     onMouseUp = (event) => {
         if (this.mousedown) {
-            let position = event.clientX - this.startX + this.state.position
-            position = position > this.state.min ? position : this.state.min
-            this.cursorRef.current.style.left = position + 'px'
-            this.props.onMoveTo(position)
             this.mousedown = false
-            window.removeEventListener('mousemove', this.onMouseMove)
-            window.removeEventListener('mouseup', this.onMouseUp)
+            this.props.onMoveTo(this.getMoveTime(event))
+            this.componentWillUnmount()
         }
     }
 
-    static getDerivedStateFromProps(nextProps) {
-        return {
-            position: nextProps.position,
-            min: nextProps.min ? nextProps.min : 0
-        }
+    componentWillUnmount() {
+        window.removeEventListener('mousemove', this.onMouseMove)
+        window.removeEventListener('mouseup', this.onMouseUp)
     }
 
     render() {
         return (
-            <div ref={this.cursorRef} className="time-cursor" onMouseDown={this.onMouseDown} style={{ left: this.state.position + 'px' }} >
-                <div></div>
+            <div className="time-cursor" onMouseDown={this.onMouseDown} style={{ left: this.props.time * pixelPerSecond(this.props.scale) + this.props.timelineMarginLeft - this.props.scrollLeft }} >
+                <div className={"overlay " + (this.mousedown ? "visible" : "")}></div>
+                <div className="cursor"></div>
             </div>
         )
     }

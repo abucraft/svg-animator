@@ -1,0 +1,47 @@
+@import '../style/variables.less';
+
+.svg-animator-scrollbar-outer {
+    position: absolute;
+    transition: opacity 0.1s;
+    opacity: 0;
+
+    &.active {
+        opacity: 1;
+    }
+
+    // border: 0.5px solid @light-grey;
+
+    &.vertical {
+        width: @scroll-bar-size;
+        top: 0px;
+        right: 0px;
+
+        .svg-animator-scrollbar-inner {
+            position: absolute;
+            left: 0px;
+            width: @scroll-bar-size;
+        }
+    }
+
+    &.horizontal {
+        height: @scroll-bar-size;
+        left: 0px;
+        bottom: 0px;
+
+        .svg-animator-scrollbar-inner {
+            position: absolute;
+            top: 0px;
+            height: @scroll-bar-size;
+        }
+    }
+
+    .svg-animator-scrollbar-inner {
+        transition: opacity 0.1s;
+        opacity: 0.5;
+        background-color: @light-grey;
+
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+}

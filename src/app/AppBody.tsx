@@ -118,11 +118,11 @@ class AppBody extends Component<AppBodyProps, AppBodyState> {
                             <div className="editor">
                                 <ToolBar></ToolBar>
                                 <SplitPane style={{ position: 'relative', height: 'auto', alignSelf: 'stretch' }} split="vertical" defaultSize={500} minSize={0} primary="second" pane2Style={{ flexDirection: 'row' }}>
-                                    <SvgCanvas className="svg-canvas" />
+                                    <SvgCanvas wrapperClassName="svg-canvas" />
                                     <AttributesPanel />
                                 </SplitPane>
                             </div>
-                            <Timelines style={{ height: "100%" }} />
+                            <Timelines />
                         </SplitPane>
                     </SvgEditorContext.Provider>
                 </div>

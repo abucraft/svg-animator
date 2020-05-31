@@ -17,7 +17,7 @@ export default class FrameHolder extends Component<FrameHolderProps> {
 
     render() {
         return (<Tooltip title={this.props.attribute}>
-            <div className="frame-holder" style={{ left: this.props.left, width: this.props.width }}></div>
+            <div className="frame-holder" style={{ left: `${this.props.left * 100}%`, width: `${this.props.width * 100}%` }}></div>
         </Tooltip>)
     }
 }

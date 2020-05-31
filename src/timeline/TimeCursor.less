@@ -1,16 +1,30 @@
-.time-cursor{
+.time-cursor {
     position: absolute;
     user-select: none;
-    height:100%;
+    height: 100%;
     width: 10px;
 }
 
-.time-cursor > div {
+.time-cursor>.cursor {
     background-color: grey;
     width: 2px;
     height: 100%;
 }
 
-.time-cursor:hover{
+.time-cursor:hover {
     cursor: e-resize;
+}
+
+.time-cursor>.overlay {
+    display: none;
+    cursor: e-resize;
+
+    width: 1200px;
+    height: 100%;
+    position: absolute;
+    transform: translateX(-50%);
+
+    &.visible {
+        display: block;
+    }
 }

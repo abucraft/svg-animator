@@ -8,8 +8,8 @@ declare global {
         width: number
     }
     type SizedComponentProps = {
-        style?: React.CSSProperties,
-        className?: string
+        wrapperStyle?: React.CSSProperties,
+        wrapperClassName?: string
     }
 }
 
@@ -38,9 +38,10 @@ export function SizedComponent<C extends HighOrderWrappedComponentType<SizedComp
             this.resizeSensor.detach()
         }
         render() {
+            let {wrapperStyle, wrapperClassName, ...restProps} = this.props
             return (
-                <div ref={this.wrapper} {...this.props}>
-                    <WrappedComponent width={this.state.width} height={this.state.height} {...this.props} />
+                <div ref={this.wrapper} style={wrapperStyle} className={wrapperClassName}>
+                    <WrappedComponent width={this.state.width} height={this.state.height} {...restProps} />
                 </div>
             )
         }
