@@ -11,6 +11,8 @@ type FrameHolderProps = {
     totalTime: number
     scale: number
     frame: SvgAnimationFrame
+    animations: Frame[]
+    alignGraduations: boolean
 } & FrameHolderPropsFromContext
 
 type FrameHolderPropsFromContext = {

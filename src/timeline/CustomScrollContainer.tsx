@@ -1,4 +1,4 @@
-import React, { Component, CSSProperties, ReactNode, RefObject } from 'react';
+import React, { Component, CSSProperties, ReactNode, RefObject, PureComponent } from 'react';
 import { ResizeSensor } from 'css-element-queries';
 
 import "./CustomScrollContainer.less";
@@ -24,7 +24,7 @@ type CustomScrollContainerState = {
     active: boolean
 }
 
-export class CustomScrollContainer extends Component<CustomScrollContainerProps, CustomScrollContainerState> {
+export class CustomScrollContainer extends PureComponent<CustomScrollContainerProps, CustomScrollContainerState> {
     scrollContainer: RefObject<HTMLDivElement>
     resizeSensor: ResizeSensor
 

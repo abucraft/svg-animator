@@ -23,6 +23,7 @@ declare global {
         scrollTop: number,
         scrollLeft: number
         scale: number
+        alignGraduations: boolean
     }
 }
 
@@ -35,7 +36,8 @@ export default class FrameContainer extends Component<FrameContainerProps, Frame
         this.state = {
             scrollTop: 0,
             scrollLeft: 0,
-            scale: 1
+            scale: 1,
+            alignGraduations: true
         }
     }
 
@@ -105,6 +107,7 @@ export default class FrameContainer extends Component<FrameContainerProps, Frame
                             timelineMarginLeft={TimelineMarginLeft}
                             scrollLeft={this.state.scrollLeft}
                             animations={this.props.svgAnimations}
+                            alignGraduations={this.state.alignGraduations}
                         />
                     </CustomScrollContainer>
                     <TimeCursor
@@ -115,7 +118,7 @@ export default class FrameContainer extends Component<FrameContainerProps, Frame
                         scale={this.state.scale}
                         timelineMarginLeft={TimelineMarginLeft}
                         scrollLeft={this.state.scrollLeft}
-                        alignGraduations={true}
+                        alignGraduations={this.state.alignGraduations}
                     />
                 </div>
             </div>)
@@ -142,7 +145,8 @@ type FrameListProps = {
     totalTime: number,
     timelineMarginLeft: number,
     scrollLeft: number,
-    animations: SvgAnimations
+    animations: SvgAnimations,
+    alignGraduations: boolean
 }
 
 class FrameList extends React.PureComponent<FrameListProps>{
@@ -188,7 +192,10 @@ class FrameList extends React.PureComponent<FrameListProps>{
                                                     totalTime={this.props.totalTime}
                                                     scale={this.props.scale}
                                                     frame={frame[2]}
-                                                    attribute={attr} />)
+                                                    attribute={attr}
+                                                    animations={attrAnimations}
+                                                    alignGraduations={this.props.alignGraduations}
+                                                />)
                                             })
                                         }
                                     </div>)

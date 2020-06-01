@@ -5,6 +5,7 @@ import { faMousePointer } from '@fortawesome/free-solid-svg-icons/faMousePointer
 import { Tooltip } from 'antd'
 import * as classNames from 'classnames'
 import {  WithSvgEditorContext } from '../app/SvgEditorContext';
+import { FormattedMessage } from 'react-intl'
 
 declare global {
     interface ToolBaseProps {
@@ -40,7 +41,7 @@ class Selector extends Component<SelectorProps> {
 
     render() {
         return (
-            <Tooltip title="Select Element" placement="right">
+            <Tooltip title={<FormattedMessage id="toolbox.select" defaultMessage="Select"/>} placement="right">
                 <div className={classNames("tool-button", { 'active': this.props.active })} onClick={this.onClick}>
                     <FontAwesomeIcon size="lg" icon={faMousePointer} />
                 </div>

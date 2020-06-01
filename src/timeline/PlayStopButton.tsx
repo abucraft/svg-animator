@@ -7,7 +7,7 @@ type PlayStopButtonProps = {
     onPlay: (play: boolean) => void,
     playing: boolean
 }
-export default class PlayStopButton extends Component<PlayStopButtonProps> {
+export default class PlayStopButton extends React.PureComponent<PlayStopButtonProps> {
     fromPauseToPlay: RefObject<any>
     fromPlayToPause: RefObject<any>
     constructor(props) {
