@@ -22,7 +22,7 @@
     "classnames": "2.2.5",
     "color": "^3.1.2",
     "css-element-queries": "1.2.1",
-    "immer": "6.0.5",
+    "immer": "9.0.6",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-hot-loader": "4.6.5",
